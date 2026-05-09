@@ -11,6 +11,7 @@ import { DetalleCarritoModule } from './detalle-carrito/detalle-carrito.module';
 import { AdminModule } from './admin/admin.module';
 import { PcArmadaModule } from './pc-armada/pc-armada.module';
 import { PcArmadaProductoModule } from './pc-armada-producto/pc-armada-producto.module';
+import { PagoModule } from './pago/pago.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PcArmadaProductoModule } from './pc-armada-producto/pc-armada-producto.
     AdminModule,
     PcArmadaModule,
     PcArmadaProductoModule,
+    PagoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
