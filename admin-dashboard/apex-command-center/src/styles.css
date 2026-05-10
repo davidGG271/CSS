@@ -1,0 +1,230 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-neon-blue: var(--neon-blue);
+  --color-neon-purple: var(--neon-purple);
+  --color-neon-violet: var(--neon-violet);
+  --color-neon-cyan: var(--neon-cyan);
+  --color-neon-pink: var(--neon-pink);
+  --color-neon-green: var(--neon-green);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-display: "Orbitron", "Space Grotesk", system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.75rem;
+
+  /* Light mode — clean tech with neon accents that still pop */
+  --background: oklch(0.985 0.005 260);
+  --foreground: oklch(0.18 0.04 270);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.04 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.04 270);
+
+  --primary: oklch(0.55 0.24 285);
+  --primary-foreground: oklch(0.99 0.005 260);
+  --secondary: oklch(0.95 0.02 270);
+  --secondary-foreground: oklch(0.22 0.05 270);
+  --muted: oklch(0.95 0.015 270);
+  --muted-foreground: oklch(0.45 0.04 270);
+  --accent: oklch(0.93 0.05 290);
+  --accent-foreground: oklch(0.22 0.08 285);
+  --destructive: oklch(0.6 0.24 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.9 0.02 270);
+  --input: oklch(0.93 0.015 270);
+  --ring: oklch(0.6 0.22 285);
+
+  --neon-blue: oklch(0.65 0.22 250);
+  --neon-purple: oklch(0.6 0.26 295);
+  --neon-violet: oklch(0.55 0.27 285);
+  --neon-cyan: oklch(0.78 0.16 200);
+  --neon-pink: oklch(0.7 0.25 350);
+  --neon-green: oklch(0.78 0.2 145);
+
+  --chart-1: oklch(0.6 0.24 285);
+  --chart-2: oklch(0.7 0.18 210);
+  --chart-3: oklch(0.75 0.18 200);
+  --chart-4: oklch(0.7 0.22 350);
+  --chart-5: oklch(0.78 0.2 145);
+
+  --sidebar: oklch(0.97 0.01 270);
+  --sidebar-foreground: oklch(0.2 0.04 270);
+  --sidebar-primary: oklch(0.55 0.24 285);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.93 0.04 285);
+  --sidebar-accent-foreground: oklch(0.22 0.06 285);
+  --sidebar-border: oklch(0.88 0.02 270);
+  --sidebar-ring: oklch(0.6 0.22 285);
+
+  --gradient-primary: linear-gradient(135deg, oklch(0.6 0.26 295), oklch(0.65 0.22 250));
+  --gradient-neon: linear-gradient(135deg, oklch(0.6 0.26 295) 0%, oklch(0.65 0.22 250) 50%, oklch(0.78 0.16 200) 100%);
+  --gradient-card: linear-gradient(160deg, oklch(1 0 0 / 0.9), oklch(0.97 0.02 285 / 0.6));
+  --shadow-glow: 0 0 24px -6px oklch(0.6 0.26 295 / 0.5);
+  --shadow-neon: 0 8px 30px -10px oklch(0.6 0.26 295 / 0.4), 0 0 0 1px oklch(0.6 0.26 295 / 0.1);
+}
+
+.dark {
+  /* Dark mode — deep blue-black with vivid neon */
+  --background: oklch(0.13 0.03 270);
+  --foreground: oklch(0.96 0.01 260);
+  --card: oklch(0.18 0.04 270);
+  --card-foreground: oklch(0.96 0.01 260);
+  --popover: oklch(0.17 0.04 270);
+  --popover-foreground: oklch(0.96 0.01 260);
+
+  --primary: oklch(0.7 0.24 290);
+  --primary-foreground: oklch(0.13 0.03 270);
+  --secondary: oklch(0.22 0.05 270);
+  --secondary-foreground: oklch(0.96 0.01 260);
+  --muted: oklch(0.22 0.04 270);
+  --muted-foreground: oklch(0.72 0.03 265);
+  --accent: oklch(0.28 0.1 290);
+  --accent-foreground: oklch(0.96 0.01 260);
+  --destructive: oklch(0.65 0.24 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.3 0.04 275 / 0.6);
+  --input: oklch(0.25 0.04 275 / 0.7);
+  --ring: oklch(0.7 0.24 290);
+
+  --neon-blue: oklch(0.72 0.22 245);
+  --neon-purple: oklch(0.72 0.26 295);
+  --neon-violet: oklch(0.68 0.27 285);
+  --neon-cyan: oklch(0.85 0.17 200);
+  --neon-pink: oklch(0.78 0.24 350);
+  --neon-green: oklch(0.85 0.2 150);
+
+  --chart-1: oklch(0.72 0.26 295);
+  --chart-2: oklch(0.72 0.22 245);
+  --chart-3: oklch(0.85 0.17 200);
+  --chart-4: oklch(0.78 0.24 350);
+  --chart-5: oklch(0.85 0.2 150);
+
+  --sidebar: oklch(0.16 0.04 272);
+  --sidebar-foreground: oklch(0.92 0.01 260);
+  --sidebar-primary: oklch(0.72 0.26 295);
+  --sidebar-primary-foreground: oklch(0.13 0.03 270);
+  --sidebar-accent: oklch(0.24 0.06 285);
+  --sidebar-accent-foreground: oklch(0.96 0.01 260);
+  --sidebar-border: oklch(0.28 0.04 275 / 0.6);
+  --sidebar-ring: oklch(0.72 0.26 295);
+
+  --gradient-primary: linear-gradient(135deg, oklch(0.72 0.26 295), oklch(0.72 0.22 245));
+  --gradient-neon: linear-gradient(135deg, oklch(0.72 0.26 295) 0%, oklch(0.72 0.22 245) 50%, oklch(0.85 0.17 200) 100%);
+  --gradient-card: linear-gradient(160deg, oklch(0.2 0.05 275 / 0.85), oklch(0.16 0.04 272 / 0.6));
+  --shadow-glow: 0 0 32px -4px oklch(0.72 0.26 295 / 0.55);
+  --shadow-neon: 0 8px 40px -10px oklch(0.72 0.26 295 / 0.5), 0 0 0 1px oklch(0.72 0.26 295 / 0.18);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html, body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: "Inter", system-ui, sans-serif;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 15% 10%, oklch(0.72 0.26 295 / 0.08), transparent 45%),
+      radial-gradient(circle at 85% 90%, oklch(0.72 0.22 245 / 0.08), transparent 45%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+  }
+}
+
+@layer utilities {
+  .gradient-primary { background: var(--gradient-primary); }
+  .gradient-neon { background: var(--gradient-neon); }
+  .text-gradient {
+    background: var(--gradient-neon);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .glow { box-shadow: var(--shadow-glow); }
+  .glow-card {
+    box-shadow: var(--shadow-neon);
+    background: var(--gradient-card);
+    backdrop-filter: blur(12px);
+  }
+  .glow-hover {
+    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+  }
+  .glow-hover:hover {
+    box-shadow: var(--shadow-neon);
+    transform: translateY(-2px);
+  }
+  .border-glow {
+    border: 1px solid color-mix(in oklch, var(--neon-purple) 35%, transparent);
+  }
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, var(--neon-purple) 50%, transparent);
+    border-radius: 9999px;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--neon-purple) 40%, transparent); }
+    50% { box-shadow: 0 0 24px 4px color-mix(in oklch, var(--neon-purple) 30%, transparent); }
+  }
+  .animate-pulse-glow { animation: pulse-glow 2.4s ease-in-out infinite; }
+}
+
+@font-face {
+  font-family: "Orbitron";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/orbitron/v34/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nyGy6BoWg1.woff2") format("woff2");
+}
