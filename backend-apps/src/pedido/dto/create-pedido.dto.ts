@@ -5,15 +5,10 @@ export class CreatePedidoDto {
   @IsNumber()
   idCliente!: number;
 
-  @IsNotEmpty({ message: 'El tipo de compra es requerido' })
-  @IsString()
-  @MaxLength(40, { message: 'El tipo de compra no puede exceder 40 caracteres' })
-  TipoCompra!: string;
-
   @IsNotEmpty({ message: 'El estado es requerido' })
   @IsString()
   @MaxLength(20, { message: 'El estado no puede exceder 20 caracteres' })
-  Estado!: string;
+  estado!: string;
 
   @IsNotEmpty({ message: 'La fecha es requerida' })
   @IsDate()

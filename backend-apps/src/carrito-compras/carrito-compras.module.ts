@@ -8,5 +8,6 @@ import { CarritoCompras } from './entities/carrito-compras.entity';
   imports: [TypeOrmModule.forFeature([CarritoCompras])],
   controllers: [CarritoComprasController],
   providers: [CarritoComprasService],
+  exports: [CarritoComprasService],
 })
 export class CarritoComprasModule {}

@@ -18,6 +18,6 @@ export class PcArmadaProducto {
   @JoinColumn({ name: 'idProducto' })
   producto!: Producto;
 
-  @Column({ type: 'varchar', length: 80 })
-  cantidad!: string;
+  @Column({ type: 'int' })
+  cantidad!: number;
 }

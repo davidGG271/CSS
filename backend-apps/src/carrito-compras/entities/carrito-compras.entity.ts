@@ -10,7 +10,7 @@ export class CarritoCompras {
   @Column()
   idCliente!: number;
 
-  @ManyToOne(() => Cliente)
+  @ManyToOne(() => Cliente, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idCliente' })
   cliente!: Cliente;
 
