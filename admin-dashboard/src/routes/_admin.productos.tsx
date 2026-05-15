@@ -41,7 +41,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { PRODUCT_CATEGORIES, formatCurrency, useAdmin, type Product, type ProductCategory } from "@/lib/store";
+import { PRODUCT_CATEGORIES, formatCurrency, type Product, type ProductCategory } from "@/lib/store";
+import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_admin/productos")({
@@ -62,10 +64,46 @@ const empty: Omit<Product, "id"> = {
 };
 
 function ProductsPage() {
-  const products = useAdmin((s) => s.products);
-  const addProduct = useAdmin((s) => s.addProduct);
-  const updateProduct = useAdmin((s) => s.updateProduct);
-  const deleteProduct = useAdmin((s) => s.deleteProduct);
+  const queryClient = useQueryClient();
+  
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: getProducts,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("Producto creado");
+    },
+    onError: (error: any) => {
+      console.error("Error completo:", error);
+      const msg = error.response?.data?.message || error.message;
+      toast.error(`Error al crear producto: ${Array.isArray(msg) ? msg[0] : msg}`);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, product }: { id: string; product: Partial<Product> }) => updateProduct(id, product),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("Producto actualizado");
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.message || error.message;
+      toast.error(`Error al actualizar producto: ${Array.isArray(msg) ? msg[0] : msg}`);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("Producto eliminado");
+    },
+    onError: () => toast.error("Error al eliminar producto"),
+  });
 
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState<string>("all");
@@ -110,11 +148,9 @@ function ProductsPage() {
       return;
     }
     if (editing) {
-      updateProduct(editing.id, form);
-      toast.success("Producto actualizado", { description: form.name });
+      updateMutation.mutate({ id: editing.id, product: form });
     } else {
-      addProduct(form);
-      toast.success("Producto creado", { description: form.name });
+      createMutation.mutate(form);
     }
     setOpen(false);
   };
@@ -183,60 +219,67 @@ function ProductsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((p) => (
-                  <TableRow key={p.id} className="border-border/30 hover:bg-muted/30">
-                    <TableCell>
-                      <div className="h-10 w-10 overflow-hidden rounded-lg bg-muted">
-                        {p.image && <img src={p.image} alt={p.name} className="h-full w-full object-cover" />}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{p.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{p.brand}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="border-[var(--neon-purple)]/40 text-[var(--neon-purple)]">
-                        {p.category}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{p.type}</TableCell>
-                    <TableCell className="text-right font-semibold">{formatCurrency(p.price)}</TableCell>
-                    <TableCell className="text-center">
-                      <span className={p.stock === 0 ? "text-destructive" : p.stock <= 3 ? "text-[var(--neon-pink)]" : ""}>
-                        {p.stock}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          p.status === "Activo"
-                            ? "bg-[var(--neon-green)]/15 text-[var(--neon-green)] border-[var(--neon-green)]/30"
-                            : "bg-muted text-muted-foreground"
-                        }
-                        variant="outline"
-                      >
-                        {p.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={() => openView(p)} aria-label="Ver">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => openEdit(p)} aria-label="Editar">
-                          <Edit className="h-4 w-4 text-[var(--neon-blue)]" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => setDelId(p.id)} aria-label="Eliminar">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
+                      Cargando productos desde el servidor...
                     </TableCell>
                   </TableRow>
-                ))}
-                {filtered.length === 0 && (
+                ) : filtered.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
                       No se encontraron productos.
                     </TableCell>
                   </TableRow>
+                ) : (
+                  filtered.map((p) => (
+                    <TableRow key={p.id} className="border-border/30 hover:bg-muted/30">
+                      <TableCell>
+                        <div className="h-10 w-10 overflow-hidden rounded-lg bg-muted">
+                          {p.image && <img src={p.image} alt={p.name} className="h-full w-full object-cover" />}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{p.brand}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="border-[var(--neon-purple)]/40 text-[var(--neon-purple)]">
+                          {p.category}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{p.type}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(p.price)}</TableCell>
+                      <TableCell className="text-center">
+                        <span className={p.stock === 0 ? "text-destructive" : p.stock <= 3 ? "text-[var(--neon-pink)]" : ""}>
+                          {p.stock}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            p.status === "Activo"
+                              ? "bg-[var(--neon-green)]/15 text-[var(--neon-green)] border-[var(--neon-green)]/30"
+                              : "bg-muted text-muted-foreground"
+                          }
+                          variant="outline"
+                        >
+                          {p.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => openView(p)} aria-label="Ver">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => openEdit(p)} aria-label="Editar">
+                            <Edit className="h-4 w-4 text-[var(--neon-blue)]" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => setDelId(p.id)} aria-label="Eliminar">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
@@ -382,8 +425,7 @@ function ProductsPage() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
                 if (delId) {
-                  deleteProduct(delId);
-                  toast.success("Producto eliminado");
+                  deleteMutation.mutate(delId);
                   setDelId(null);
                 }
               }}

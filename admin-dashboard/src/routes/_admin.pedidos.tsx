@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Eye, Printer, Search, X } from "lucide-react";
+import { Eye, Printer, Search, X, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,8 +28,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { ORDER_STATUSES, formatCurrency, useAdmin, type Order, type OrderStatus } from "@/lib/store";
+import { ORDER_STATUSES, formatCurrency, type Order, type OrderStatus } from "@/lib/store";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getOrders, updateOrderStatus } from "@/lib/api";
 
 export const Route = createFileRoute("/_admin/pedidos")({
   component: OrdersPage,
@@ -45,9 +47,30 @@ const statusColor: Record<OrderStatus, string> = {
 };
 
 function OrdersPage() {
-  const orders = useAdmin((s) => s.orders);
-  const updateStatus = useAdmin((s) => s.updateOrderStatus);
-  const cancelOrder = useAdmin((s) => s.cancelOrder);
+  const queryClient = useQueryClient();
+
+  // Obtener pedidos del backend usando TanStack Query
+  const {
+    data: orders = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["orders"],
+    queryFn: getOrders,
+  });
+
+  // Mutación para actualizar el estado del pedido
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => updateOrderStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || err.message;
+      toast.error(`Error al actualizar estado: ${msg}`);
+    },
+  });
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -62,6 +85,26 @@ function OrdersPage() {
       }),
     [orders, search, filter],
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[50vh] flex-col items-center justify-center gap-4 text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--neon-purple)]" />
+        <p>Cargando pedidos desde la base de datos...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-[50vh] flex-col items-center justify-center gap-4 text-destructive">
+        <AlertCircle className="h-10 w-10" />
+        <p className="text-lg font-semibold">Error al cargar pedidos</p>
+        <p className="text-sm text-muted-foreground">{error instanceof Error ? error.message : "Error desconocido"}</p>
+        <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["orders"] })}>Reintentar</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -109,8 +152,17 @@ function OrdersPage() {
                     <TableCell className="text-right font-semibold">{formatCurrency(o.total)}</TableCell>
                     <TableCell><Badge variant="outline">{o.paymentMethod}</Badge></TableCell>
                     <TableCell>
-                      <Select value={o.status} onValueChange={(v) => { updateStatus(o.id, v as OrderStatus); toast.success(`${o.id} → ${v}`); }}>
-                        <SelectTrigger className={`h-8 w-40 border ${statusColor[o.status]}`}>
+                      <Select 
+                        value={o.status} 
+                        onValueChange={(v) => { 
+                          toast.promise(statusMutation.mutateAsync({ id: o.id, status: v }), {
+                            loading: 'Actualizando estado...',
+                            success: `Estado actualizado a ${v}`,
+                            error: 'No se pudo actualizar'
+                          });
+                        }}
+                      >
+                        <SelectTrigger className={`h-8 w-40 border ${statusColor[o.status] || "border-border"}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -129,8 +181,14 @@ function OrdersPage() {
                         <Button
                           size="icon"
                           variant="ghost"
-                          disabled={o.status === "Cancelado"}
-                          onClick={() => { cancelOrder(o.id); toast.success("Pedido cancelado"); }}
+                          disabled={o.status === "Cancelado" || statusMutation.isPending}
+                          onClick={() => { 
+                            toast.promise(statusMutation.mutateAsync({ id: o.id, status: "Cancelado" }), {
+                              loading: 'Cancelando...',
+                              success: 'Pedido cancelado exitosamente',
+                              error: 'No se pudo cancelar el pedido'
+                            });
+                          }}
                           aria-label="Cancelar"
                         >
                           <X className="h-4 w-4 text-destructive" />
@@ -154,8 +212,8 @@ function OrdersPage() {
             <>
               <DialogHeader>
                 <DialogTitle className="font-display flex items-center gap-3">
-                  <span className="text-gradient">{viewing.id}</span>
-                  <Badge variant="outline" className={statusColor[viewing.status]}>{viewing.status}</Badge>
+                  <span className="text-gradient">#{viewing.id}</span>
+                  <Badge variant="outline" className={statusColor[viewing.status] || "border-border"}>{viewing.status}</Badge>
                 </DialogTitle>
                 <DialogDescription>Código: {viewing.transactionCode}</DialogDescription>
               </DialogHeader>
@@ -163,7 +221,6 @@ function OrdersPage() {
               <div className="grid grid-cols-2 gap-3 rounded-xl border border-border/50 bg-muted/30 p-4 text-sm">
                 <div><p className="text-xs text-muted-foreground">Cliente</p><p className="font-medium">{viewing.customerName}</p></div>
                 <div><p className="text-xs text-muted-foreground">Fecha</p><p>{viewing.date}</p></div>
-                <div className="col-span-2"><p className="text-xs text-muted-foreground">Dirección</p><p>{viewing.address}</p></div>
                 <div><p className="text-xs text-muted-foreground">Pago</p><p>{viewing.paymentMethod}</p></div>
                 <div><p className="text-xs text-muted-foreground">Total</p><p className="font-bold text-[var(--neon-purple)]">{formatCurrency(viewing.total)}</p></div>
               </div>
@@ -171,8 +228,8 @@ function OrdersPage() {
               <div>
                 <h3 className="mb-2 text-sm font-semibold">Productos</h3>
                 <div className="space-y-2">
-                  {viewing.items.map((it) => (
-                    <div key={it.productId} className="flex justify-between rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-sm">
+                  {viewing.items.map((it, idx) => (
+                    <div key={idx} className="flex justify-between rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-sm">
                       <span>{it.name} <span className="text-muted-foreground">× {it.quantity}</span></span>
                       <span className="font-medium">{formatCurrency(it.price * it.quantity)}</span>
                     </div>
