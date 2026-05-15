@@ -13,14 +13,14 @@ export class PcArmada {
   @Column({ nullable: true })
   idCliente?: number;
 
-  @ManyToOne(() => Cliente, { nullable: true })
+  @ManyToOne(() => Cliente, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'idCliente' })
   cliente?: Cliente;
 
   @Column({ nullable: true })
   idAdmin?: number;
 
-  @ManyToOne(() => Admin, (admin) => admin.pcArmadas, { nullable: true })
+  @ManyToOne(() => Admin, (admin) => admin.pcArmadas, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'idAdmin' })
   admin?: Admin;
 

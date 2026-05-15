@@ -1,36 +1,36 @@
-import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { CarritoCompras } from '../../carrito-compras/entities/carrito-compras.entity';
 import { Producto } from '../../producto/entities/producto.entity';
 import { PcArmada } from '../../pc-armada/entities/pc-armada.entity';
 
 @Entity('detalle_carrito')
 export class DetalleCarrito {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
+  idDetalleCarrito!: number;
+
+  @Column()
   idCarrito!: number;
 
-  @ManyToOne(() => CarritoCompras)
+  @ManyToOne(() => CarritoCompras, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idCarrito' })
   carrito!: CarritoCompras;
 
-  @PrimaryColumn()
+  @Column({ nullable: true })
   idProducto?: number;
 
-  @ManyToOne(() => Producto, { nullable: true })
+  @ManyToOne(() => Producto, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idProducto' })
   producto?: Producto;
 
   @Column({ nullable: true })
   idPcArmada?: number;
 
-  @ManyToOne(() => PcArmada, (pcArmada) => pcArmada.detallesCarrito, { nullable: true })
+  @ManyToOne(() => PcArmada, (pcArmada) => pcArmada.detallesCarrito, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idPcArmada' })
   pcArmada?: PcArmada;
 
-  @Column({ type: 'varchar', length: 40 })
-  TipoCompra!: string;
-
-  @Column({ type: 'boolean', default: true })
-  isVisible!: boolean;
+  @Column({ type: 'int' })
+  cantidad!: number;
 
   @CreateDateColumn()
   createdAt!: Date;

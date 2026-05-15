@@ -18,32 +18,36 @@ export class DetalleCarritoService {
   }
 
   async findAll() {
-    return this.detalleCarritoRepository.find({ relations: ['carrito', 'producto'] });
+    return this.detalleCarritoRepository.find({ relations: ['carrito', 'producto', 'pcArmada'] });
   }
 
-  async findOne(idCarrito: number, idProducto: number) {
+  async findByCarrito(idCarrito: number) {
+    return this.detalleCarritoRepository.find({
+      where: { idCarrito },
+      relations: ['carrito', 'producto', 'pcArmada'],
+    });
+  }
+
+  async findOne(idDetalleCarrito: number) {
     const detalleCarrito = await this.detalleCarritoRepository.findOne({
-      where: { idCarrito, idProducto },
-      relations: ['carrito', 'producto'],
+      where: { idDetalleCarrito },
+      relations: ['carrito', 'producto', 'pcArmada'],
     });
     if (!detalleCarrito) {
-      throw new NotFoundException('Detalle de carrito no encontrado');
+      throw new NotFoundException(`Detalle de carrito con ID ${idDetalleCarrito} no encontrado`);
     }
     return detalleCarrito;
   }
 
-  async update(
-    idCarrito: number,
-    idProducto: number,
-    updateDetalleCarritoDto: UpdateDetalleCarritoDto,
-  ) {
-    const detalleCarrito = await this.findOne(idCarrito, idProducto);
+  async update(idDetalleCarrito: number, updateDetalleCarritoDto: UpdateDetalleCarritoDto) {
+    const detalleCarrito = await this.findOne(idDetalleCarrito);
     Object.assign(detalleCarrito, updateDetalleCarritoDto);
     return this.detalleCarritoRepository.save(detalleCarrito);
   }
 
-  async remove(idCarrito: number, idProducto: number) {
-    const detalleCarrito = await this.findOne(idCarrito, idProducto);
-    return this.detalleCarritoRepository.remove(detalleCarrito);
+  async remove(idDetalleCarrito: number) {
+    const detalleCarrito = await this.findOne(idDetalleCarrito);
+    await this.detalleCarritoRepository.remove(detalleCarrito);
+    return { message: `Detalle de carrito con ID ${idDetalleCarrito} eliminado correctamente` };
   }
 }
