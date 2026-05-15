@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ClienteService } from './cliente.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
+import { LoginClienteDto } from './dto/login-cliente.dto';
 
 @Controller('cliente')
 export class ClienteController {
@@ -10,6 +11,11 @@ export class ClienteController {
   @Post()
   create(@Body() createClienteDto: CreateClienteDto) {
     return this.clienteService.create(createClienteDto);
+  }
+
+  @Post('login')
+  login(@Body() loginClienteDto: LoginClienteDto) {
+    return this.clienteService.login(loginClienteDto);
   }
 
   @Get()

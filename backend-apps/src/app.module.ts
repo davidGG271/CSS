@@ -20,7 +20,7 @@ import { PagoModule } from './pago/pago.module';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: '301204',
+      password: 'henry',
       database: 'tiendaCyC',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,

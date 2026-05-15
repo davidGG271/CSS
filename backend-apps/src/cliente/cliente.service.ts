@@ -1,9 +1,10 @@
-import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
+import { LoginClienteDto } from './dto/login-cliente.dto';
 import { Cliente } from './entities/cliente.entity';
 
 @Injectable()
@@ -105,5 +106,32 @@ export class ClienteService {
 
     await this.clienteRepository.remove(cliente);
     return { message: `Cliente con ID ${idCliente} eliminado correctamente` };
+  }
+
+  async login(loginClienteDto: LoginClienteDto) {
+    const cliente = await this.clienteRepository.findOne({
+      where: { correo: loginClienteDto.correo },
+    });
+
+    if (!cliente) {
+      throw new UnauthorizedException('Correo o contraseña incorrectos');
+    }
+
+    const contrasenaValida = await bcrypt.compare(
+      loginClienteDto.contrasena,
+      cliente.contrasena,
+    );
+
+    if (!contrasenaValida) {
+      throw new UnauthorizedException('Correo o contraseña incorrectos');
+    }
+
+    return {
+      idCliente: cliente.idCliente,
+      nombre: cliente.nombre,
+      correo: cliente.correo,
+      dni: cliente.dni,
+      message: 'Login exitoso',
+    };
   }
 }
