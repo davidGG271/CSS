@@ -1,8 +1,10 @@
 import { useSyncExternalStore } from "react";
 
 export interface User {
+  idCliente?: number;
   name: string;
   email: string;
+  dni?: string;
   phone?: string;
   address?: string;
   city?: string;
@@ -44,6 +46,9 @@ export const auth = {
   logout() {
     state = null;
     persist();
+  },
+  get current() {
+    return state;
   },
   subscribe(fn: () => void) {
     listeners.add(fn);

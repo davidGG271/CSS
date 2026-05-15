@@ -12,7 +12,7 @@ export interface ProductoBackend {
   descripcion: string;
 }
 
-function mapProducto(p: ProductoBackend): Product {
+export function mapProducto(p: ProductoBackend): Product {
   return {
     id: String(p.idProducto),
     name: p.nombre,

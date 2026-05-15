@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Cpu, Truck, ShieldCheck, Headphones } from "lucide-react";
 import heroImg from "@/assets/hero-pc.jpg";
-import { categories, products } from "@/lib/products";
+import { categories } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
+import { getProductos } from "@/lib/products-api";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -15,6 +17,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { data: products = [] } = useQuery({
+    queryKey: ["productos"],
+    queryFn: getProductos,
+  });
   const featured = products.slice(0, 4);
   const deals = products.filter((p) => p.oldPrice).slice(0, 4);
 
