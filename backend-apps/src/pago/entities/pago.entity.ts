@@ -9,7 +9,7 @@ export class Pago {
   @Column()
   idPedido!: number;
 
-  @ManyToOne(() => Pedido, (pedido) => pedido.pagos)
+  @ManyToOne(() => Pedido, (pedido) => pedido.pagos, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idPedido' })
   pedido!: Pedido;
 

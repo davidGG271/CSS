@@ -18,14 +18,14 @@ export class DetallePedido {
   @Column({ nullable: true })
   idProducto?: number;
 
-  @ManyToOne(() => Producto, { nullable: true })
+  @ManyToOne(() => Producto, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idProducto' })
   producto?: Producto;
 
   @Column({ nullable: true })
   idPcArmada?: number;
 
-  @ManyToOne(() => PcArmada, (pcArmada) => pcArmada.detallesPedido, { nullable: true })
+  @ManyToOne(() => PcArmada, (pcArmada) => pcArmada.detallesPedido, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idPcArmada' })
   pcArmada?: PcArmada;
 

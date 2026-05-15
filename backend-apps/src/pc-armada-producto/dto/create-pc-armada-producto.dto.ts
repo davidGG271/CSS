@@ -1,4 +1,4 @@
-import { IsNumber, IsString, IsNotEmpty, MaxLength } from 'class-validator';
+import { IsNumber, IsNotEmpty } from 'class-validator';
 
 export class CreatePcArmadaProductoDto {
   @IsNotEmpty({ message: 'El ID de PC Armada es requerido' })
@@ -10,7 +10,6 @@ export class CreatePcArmadaProductoDto {
   idProducto!: number;
 
   @IsNotEmpty({ message: 'La cantidad es requerida' })
-  @IsString()
-  @MaxLength(80, { message: 'La cantidad no puede exceder 80 caracteres' })
-  cantidad!: string;
+  @IsNumber()
+  cantidad!: number;
 }

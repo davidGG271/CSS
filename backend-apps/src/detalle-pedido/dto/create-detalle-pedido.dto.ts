@@ -1,13 +1,17 @@
-import { IsNumber, IsNotEmpty, Min } from 'class-validator';
+import { IsNumber, IsNotEmpty, IsOptional, Min } from 'class-validator';
 
 export class CreateDetallePedidoDto {
   @IsNotEmpty({ message: 'El ID del pedido es requerido' })
   @IsNumber()
   idPedido!: number;
 
-  @IsNotEmpty({ message: 'El ID del producto es requerido' })
+  @IsOptional()
   @IsNumber()
-  idProducto!: number;
+  idProducto?: number;
+
+  @IsOptional()
+  @IsNumber()
+  idPcArmada?: number;
 
   @IsNotEmpty({ message: 'La cantidad es requerida' })
   @IsNumber()

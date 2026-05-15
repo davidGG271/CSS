@@ -8,5 +8,6 @@ import { DetalleCarrito } from './entities/detalle-carrito.entity';
   imports: [TypeOrmModule.forFeature([DetalleCarrito])],
   controllers: [DetalleCarritoController],
   providers: [DetalleCarritoService],
+  exports: [DetalleCarritoService],
 })
 export class DetalleCarritoModule {}

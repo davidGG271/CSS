@@ -17,28 +17,26 @@ export class DetalleCarritoController {
     return this.detalleCarritoService.findAll();
   }
 
-  @Get(':idCarrito/:idProducto')
-  findOne(
-    @Param('idCarrito') idCarrito: string,
-    @Param('idProducto') idProducto: string,
-  ) {
-    return this.detalleCarritoService.findOne(+idCarrito, +idProducto);
+  @Get('carrito/:idCarrito')
+  findByCarrito(@Param('idCarrito') idCarrito: string) {
+    return this.detalleCarritoService.findByCarrito(+idCarrito);
   }
 
-  @Patch(':idCarrito/:idProducto')
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.detalleCarritoService.findOne(+id);
+  }
+
+  @Patch(':id')
   update(
-    @Param('idCarrito') idCarrito: string,
-    @Param('idProducto') idProducto: string,
+    @Param('id') id: string,
     @Body() updateDetalleCarritoDto: UpdateDetalleCarritoDto,
   ) {
-    return this.detalleCarritoService.update(+idCarrito, +idProducto, updateDetalleCarritoDto);
+    return this.detalleCarritoService.update(+id, updateDetalleCarritoDto);
   }
 
-  @Delete(':idCarrito/:idProducto')
-  remove(
-    @Param('idCarrito') idCarrito: string,
-    @Param('idProducto') idProducto: string,
-  ) {
-    return this.detalleCarritoService.remove(+idCarrito, +idProducto);
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.detalleCarritoService.remove(+id);
   }
 }

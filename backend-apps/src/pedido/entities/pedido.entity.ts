@@ -11,7 +11,7 @@ export class Pedido {
   @Column()
   idCliente!: number;
 
-  @ManyToOne(() => Cliente)
+  @ManyToOne(() => Cliente, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'idCliente' })
   cliente!: Cliente;
 
@@ -21,11 +21,8 @@ export class Pedido {
   @OneToMany(() => Pago, (pago) => pago.pedido, { cascade: true })
   pagos!: Pago[];
 
-  @Column({ type: 'varchar', length: 40 })
-  TipoCompra!: string;
-
   @Column({ type: 'varchar', length: 20 })
-  Estado!: string;
+  estado!: string;
 
   @Column({ type: 'date' })
   fecha!: Date;
