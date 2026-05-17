@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertTriangle, Check, Cpu, Edit, Plus, Trash2, Zap } from "lucide-react";
+import { AlertTriangle, Check, Cpu, Edit, Plus, Trash2, Zap, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,8 +25,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { useAdmin, formatCurrency, type Product, type ProductCategory } from "@/lib/store";
+import { formatCurrency, type Product, type ProductCategory } from "@/lib/store";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getProducts, getPcArmadas, createPcArmada, createPcArmadaProducto, updatePcArmadaStock, deletePcArmada, updateProduct, updatePcArmada, BackendPcArmada } from "@/lib/api";
 
 export const Route = createFileRoute("/admin/builds")({
   component: BuildsPage,
@@ -63,17 +65,27 @@ function checkCompatibility(picks: Product[]) {
 }
 
 function BuildsPage() {
-  const products = useAdmin((s) => s.products);
-  const builds = useAdmin((s) => s.builds);
-  const addBuild = useAdmin((s) => s.addBuild);
-  const updateBuild = useAdmin((s) => s.updateBuild);
-  const deleteBuild = useAdmin((s) => s.deleteBuild);
+  const queryClient = useQueryClient();
+  const { data: products = [] } = useQuery({ queryKey: ["productos"], queryFn: getProducts });
+  const { data: builds = [] } = useQuery({ queryKey: ["pc-armadas"], queryFn: getPcArmadas });
+
+  const userStr = localStorage.getItem("cyc-user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const currentAdminId = user?.rol === "ADMIN" ? user.id : 1;
 
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
+  const [image, setImage] = useState<string>("");
   const [picks, setPicks] = useState<SelectedMap>({});
   const [delId, setDelId] = useState<string | null>(null);
+
+  const handleImage = (file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setImage(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const pickedProducts = useMemo(
     () => Object.values(picks).map((id) => products.find((p) => p.id === id)).filter(Boolean) as Product[],
@@ -82,44 +94,133 @@ function BuildsPage() {
   const total = pickedProducts.reduce((s, p) => s + p.price, 0);
   const { issues, totalConsumption } = checkCompatibility(pickedProducts);
 
-  const reset = () => { setName(""); setPicks({}); setEditingId(null); };
+  const reset = () => { setName(""); setImage(""); setPicks({}); setEditingId(null); };
 
   const openNew = () => { reset(); setOpen(true); };
 
-  const openEdit = (id: string) => {
-    const b = builds.find((x) => x.id === id);
+  const openEdit = (id: string | number) => {
+    const b = builds.find((x) => String(x.idPcArmada) === String(id));
     if (!b) return;
-    setEditingId(id);
-    setName(b.name);
+    setEditingId(String(id));
+    setName(b.nombre);
+    setImage(b.imagen || "");
     const map: SelectedMap = {};
-    b.componentIds.forEach((pid) => {
-      const p = products.find((x) => x.id === pid);
+    (b.productos || []).forEach((prodRel) => {
+      const p = products.find((x) => String(x.id) === String(prodRel.idProducto));
       if (!p) return;
       const slot = SLOTS.find((s) => s.category === p.category);
-      if (slot) map[slot.key] = pid;
+      if (slot) map[slot.key] = p.id;
     });
     setPicks(map);
     setOpen(true);
   };
 
+  const saveMutation = useMutation({
+    mutationFn: async (payload: { name: string, image: string, pickedProducts: Product[], total: number, estimatedConsumption: number, isEdit: boolean }) => {
+      if (payload.isEdit) {
+        // En edición, solo actualizamos nombre e imagen
+        await updatePcArmada(Number(editingId), {
+          nombre: payload.name,
+          imagen: payload.image,
+        });
+        return;
+      }
+
+      for (const p of payload.pickedProducts) {
+        if (p.stock < 1) throw new Error(`Sin stock para: ${p.name}`);
+      }
+
+      const newPc = await createPcArmada({
+        idAdmin: currentAdminId,
+        nombre: payload.name,
+        precio: payload.total,
+        stock: 1,
+        tipo: "Catálogo",
+        imagen: payload.image,
+        descripcion: `Consumo: ${payload.estimatedConsumption}W`,
+      });
+
+      for (const p of payload.pickedProducts) {
+        await createPcArmadaProducto({
+          idPcArmada: newPc.idPcArmada!,
+          idProducto: Number(p.id),
+          cantidad: 1,
+        });
+        await updateProduct(p.id, { stock: p.stock - 1 });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pc-armadas"] });
+      queryClient.invalidateQueries({ queryKey: ["productos"] });
+      toast.success("PC Armada guardada");
+      setOpen(false);
+      reset();
+    },
+    onError: (e: any) => toast.error(e.message || "Error al guardar")
+  });
+
+  const stockMutation = useMutation({
+    mutationFn: async ({ pc, delta }: { pc: BackendPcArmada, delta: number }) => {
+      const newStock = pc.stock + delta;
+      if (newStock < 0) throw new Error("El stock no puede ser negativo");
+      
+      if (delta > 0) {
+        for (const prodRel of pc.productos || []) {
+          const fullProd = products.find(p => String(p.id) === String(prodRel.idProducto));
+          if (!fullProd || fullProd.stock < prodRel.cantidad * delta) {
+            throw new Error(`Stock insuficiente para: ${fullProd?.name || 'Desconocido'}`);
+          }
+        }
+        for (const prodRel of pc.productos || []) {
+          const fullProd = products.find(p => String(p.id) === String(prodRel.idProducto));
+          await updateProduct(fullProd!.id, { stock: fullProd!.stock - (prodRel.cantidad * delta) });
+        }
+      } else if (delta < 0) {
+        for (const prodRel of pc.productos || []) {
+          const fullProd = products.find(p => String(p.id) === String(prodRel.idProducto));
+          if (fullProd) {
+            await updateProduct(fullProd.id, { stock: fullProd.stock + (prodRel.cantidad * Math.abs(delta)) });
+          }
+        }
+      }
+      await updatePcArmadaStock(pc.idPcArmada!, newStock);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pc-armadas"] });
+      queryClient.invalidateQueries({ queryKey: ["productos"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Error al actualizar stock")
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (idStr: string) => {
+      const pc = builds.find(x => String(x.idPcArmada) === idStr);
+      if (!pc) return;
+      if (pc.stock > 0) {
+        for (const prodRel of pc.productos || []) {
+          const fullProd = products.find(p => String(p.id) === String(prodRel.idProducto));
+          if (fullProd) {
+            await updateProduct(fullProd.id, { stock: fullProd.stock + (prodRel.cantidad * pc.stock) });
+          }
+        }
+      }
+      await deletePcArmada(pc.idPcArmada!);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pc-armadas"] });
+      queryClient.invalidateQueries({ queryKey: ["productos"] });
+      toast.success("PC Armada eliminada");
+      setDelId(null);
+    },
+    onError: () => toast.error("Error al eliminar la PC Armada")
+  });
+
   const save = () => {
     if (!name.trim()) { toast.error("Nombre requerido"); return; }
-    if (pickedProducts.length === 0) { toast.error("Selecciona al menos un componente"); return; }
-    const payload = {
-      name,
-      componentIds: pickedProducts.map((p) => p.id),
-      totalPrice: total,
-      estimatedConsumption: totalConsumption,
-    };
-    if (editingId) {
-      updateBuild(editingId, payload);
-      toast.success("Build actualizada");
-    } else {
-      addBuild(payload);
-      toast.success("Build creada");
-    }
-    setOpen(false);
-    reset();
+    if (!editingId && pickedProducts.length === 0) { toast.error("Selecciona al menos un componente"); return; }
+    saveMutation.mutate({
+      name, image, pickedProducts, total, estimatedConsumption: totalConsumption, isEdit: !!editingId
+    });
   };
 
   return (
@@ -148,17 +249,22 @@ function BuildsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {builds.map((b) => {
-            const comps = b.componentIds.map((id) => products.find((p) => p.id === id)).filter(Boolean) as Product[];
+            const comps = (b.productos || []).map((rel) => products.find((p) => String(p.id) === String(rel.idProducto))).filter(Boolean) as Product[];
             return (
-              <Card key={b.id} className="glow-card glow-hover border-border/50">
-                <CardHeader>
+              <Card key={b.idPcArmada} className="glow-card glow-hover border-border/50 flex flex-col">
+                {b.imagen && (
+                  <div className="h-40 w-full overflow-hidden rounded-t-xl bg-muted">
+                    <img src={b.imagen} alt={b.nombre} className="h-full w-full object-cover transition hover:scale-105" />
+                  </div>
+                )}
+                <CardHeader className={b.imagen ? "pt-4" : ""}>
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="font-display text-lg">{b.name}</CardTitle>
+                    <CardTitle className="font-display text-lg">{b.nombre}</CardTitle>
                     <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(b.id)}>
+                      <Button size="icon" variant="ghost" onClick={() => openEdit(b.idPcArmada!)}>
                         <Edit className="h-4 w-4 text-[var(--neon-blue)]" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => setDelId(b.id)}>
+                      <Button size="icon" variant="ghost" onClick={() => setDelId(String(b.idPcArmada))}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
@@ -175,10 +281,12 @@ function BuildsPage() {
                     {comps.length > 4 && <p className="text-xs text-muted-foreground">+{comps.length - 4} más</p>}
                   </div>
                   <div className="flex items-center justify-between border-t border-border/40 pt-3">
-                    <Badge variant="outline" className="border-[var(--neon-cyan)]/30 text-[var(--neon-cyan)]">
-                      {b.estimatedConsumption}W
-                    </Badge>
-                    <span className="font-display text-lg font-bold text-gradient">{formatCurrency(b.totalPrice)}</span>
+                    <div className="flex items-center gap-2">
+                      <Button size="icon" className="h-7 w-7 bg-muted/30 border-border/50 hover:bg-muted" variant="outline" onClick={() => stockMutation.mutate({ pc: b, delta: -1 })} disabled={stockMutation.isPending}>-</Button>
+                      <span className="text-sm font-medium w-4 text-center">{b.stock}</span>
+                      <Button size="icon" className="h-7 w-7 bg-muted/30 border-border/50 hover:bg-muted" variant="outline" onClick={() => stockMutation.mutate({ pc: b, delta: 1 })} disabled={stockMutation.isPending}>+</Button>
+                    </div>
+                    <span className="font-display text-lg font-bold text-gradient">{formatCurrency(b.precio)}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -203,19 +311,57 @@ function BuildsPage() {
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. NEONFORGE Apex 7800X3D" />
             </div>
 
+            <div className="space-y-1.5">
+              <Label>Imagen</Label>
+              <label
+                className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--neon-purple)]/40 bg-muted/30 p-6 transition hover:border-[var(--neon-purple)] hover:bg-muted/50"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleImage(e.dataTransfer.files?.[0]);
+                }}
+              >
+                {image ? (
+                  <img src={image} alt="preview" className="max-h-32 rounded-lg" />
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 text-[var(--neon-purple)]" />
+                    <span className="text-sm text-muted-foreground">Arrastra o haz click para subir</span>
+                  </>
+                )}
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImage(e.target.files?.[0] || undefined)} />
+              </label>
+              <Input
+                placeholder="O pega una URL"
+                value={image}
+                onChange={(e) => setImage(e.target.value)}
+              />
+            </div>
+
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {SLOTS.map((slot) => {
                 const opts = products.filter((p) => p.category === slot.category && p.status === "Activo");
                 const sel = picks[slot.key];
-                const selProd = opts.find((p) => p.id === sel);
+                const selProd = opts.find((p) => String(p.id) === String(sel));
                 return (
-                  <div key={slot.key} className="rounded-xl border border-border/50 bg-muted/30 p-3">
+                  <div 
+                    key={slot.key} 
+                    className="rounded-xl border border-border/50 bg-muted/30 p-3 opacity-90 transition-opacity hover:opacity-100"
+                    onClickCapture={(e) => {
+                      if (!!editingId) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toast.error("No se pueden editar los componentes de una PC creada, por favor cree otra nueva pc con los componentes que desea", { duration: 4000 });
+                      }
+                    }}
+                  >
                     <Label className="mb-1.5 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
                       <span>{slot.icon}</span> {slot.label}
                     </Label>
                     <Select
-                      value={sel || ""}
+                      value={String(sel || "")}
                       onValueChange={(v) => setPicks({ ...picks, [slot.key]: v })}
+                      disabled={!!editingId}
                     >
                       <SelectTrigger><SelectValue placeholder="Sin seleccionar" /></SelectTrigger>
                       <SelectContent>
@@ -272,8 +418,8 @@ function BuildsPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={save} className="gradient-neon text-white">
-              {editingId ? "Guardar cambios" : "Crear Build"}
+            <Button onClick={save} className="gradient-neon text-white" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? "Guardando..." : editingId ? "Guardar cambios" : "Crear Build"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -288,8 +434,9 @@ function BuildsPage() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground"
-              onClick={() => { if (delId) { deleteBuild(delId); toast.success("Build eliminada"); setDelId(null); } }}
-            >Eliminar</AlertDialogAction>
+              onClick={() => { if (delId) { deleteMutation.mutate(delId); } }}
+              disabled={deleteMutation.isPending}
+            >{deleteMutation.isPending ? "Eliminando..." : "Eliminar"}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

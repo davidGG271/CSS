@@ -1,9 +1,16 @@
-import { Outlet, createFileRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/admin/AppSidebar";
 import { TopNav } from "@/components/admin/TopNav";
+import { getRolActual } from "@/lib/auth-unified";
 
 export const Route = createFileRoute("/admin")({
+  beforeLoad: () => {
+    const rol = getRolActual();
+    if (rol !== "ADMIN") {
+      throw redirect({ to: "/login" });
+    }
+  },
   component: AdminLayout,
 });
 

@@ -17,6 +17,7 @@ import { useTheme } from "@/lib/theme";
 import { useAdmin } from "@/lib/store";
 import { toast } from "sonner";
 import { useState } from "react";
+import { logoutUnificado } from "@/lib/auth-unified";
 
 export function TopNav() {
   const { theme, toggle } = useTheme();
@@ -57,7 +58,7 @@ export function TopNav() {
           size="sm"
           variant="outline"
           className="hidden gap-2 border-[var(--neon-purple)]/40 hover:border-[var(--neon-purple)] hover:text-[var(--neon-purple)] sm:inline-flex"
-          onClick={() => navigate({ to: "/productos" })}
+          onClick={() => navigate({ to: "/admin/productos" })}
         >
           <Plus className="h-4 w-4" /> Producto
         </Button>
@@ -65,7 +66,7 @@ export function TopNav() {
           size="sm"
           variant="outline"
           className="hidden gap-2 border-[var(--neon-blue)]/40 hover:border-[var(--neon-blue)] hover:text-[var(--neon-blue)] sm:inline-flex"
-          onClick={() => navigate({ to: "/builds" })}
+          onClick={() => navigate({ to: "/admin/builds" })}
         >
           <Zap className="h-4 w-4" /> Nueva Build
         </Button>
@@ -89,7 +90,7 @@ export function TopNav() {
             <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {pending > 0 && (
-              <DropdownMenuItem onClick={() => navigate({ to: "/pedidos" })} className="gap-2">
+              <DropdownMenuItem onClick={() => navigate({ to: "/admin/pedidos" })} className="gap-2">
                 <ShoppingCart className="h-4 w-4 text-[var(--neon-blue)]" />
                 <div className="flex-1">
                   <p className="text-sm">{pending} pedidos pendientes</p>
@@ -98,7 +99,7 @@ export function TopNav() {
               </DropdownMenuItem>
             )}
             {lowStock > 0 && (
-              <DropdownMenuItem onClick={() => navigate({ to: "/inventario" })} className="gap-2">
+              <DropdownMenuItem onClick={() => navigate({ to: "/admin/inventario" })} className="gap-2">
                 <Package className="h-4 w-4 text-[var(--neon-pink)]" />
                 <div className="flex-1">
                   <p className="text-sm">{lowStock} productos con stock bajo</p>
@@ -107,7 +108,7 @@ export function TopNav() {
               </DropdownMenuItem>
             )}
             {outOfStock > 0 && (
-              <DropdownMenuItem onClick={() => navigate({ to: "/inventario" })} className="gap-2">
+              <DropdownMenuItem onClick={() => navigate({ to: "/admin/inventario" })} className="gap-2">
                 <Package className="h-4 w-4 text-destructive" />
                 <div className="flex-1">
                   <p className="text-sm">{outOfStock} productos agotados</p>
@@ -141,12 +142,16 @@ export function TopNav() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate({ to: "/configuracion" })}>Configuración</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => toast.info("Perfil próximamente")}>Perfil</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate({ to: "/admin/configuracion" })}>Configuración</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate({ to: "/admin/perfil" })}>Perfil</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive"
-              onClick={() => toast.success("Sesión cerrada")}
+              onClick={() => {
+                logoutUnificado();
+                toast.success("Sesión cerrada", { duration: 2000 });
+                navigate({ to: "/" });
+              }}
             >
               Cerrar sesión
             </DropdownMenuItem>

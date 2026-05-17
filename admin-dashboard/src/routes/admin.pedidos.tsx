@@ -41,7 +41,6 @@ const statusColor: Record<OrderStatus, string> = {
   Pendiente: "bg-amber-500/15 text-amber-400 border-amber-500/30",
   Pagado: "bg-[var(--neon-cyan)]/15 text-[var(--neon-cyan)] border-[var(--neon-cyan)]/30",
   "En preparación": "bg-[var(--neon-blue)]/15 text-[var(--neon-blue)] border-[var(--neon-blue)]/30",
-  Enviado: "bg-[var(--neon-purple)]/15 text-[var(--neon-purple)] border-[var(--neon-purple)]/30",
   Entregado: "bg-[var(--neon-green)]/15 text-[var(--neon-green)] border-[var(--neon-green)]/30",
   Cancelado: "bg-destructive/15 text-destructive border-destructive/30",
 };

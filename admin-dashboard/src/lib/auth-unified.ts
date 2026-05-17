@@ -6,20 +6,15 @@ export interface AdminBackend {
   id: number;
   nombre: string;
   correo: string;
+  contrasena?: string; // puede venir del backend si no está oculto
 }
 
-/**
- * Intenta buscar el correo en la tabla de admins.
- * El backend usa bcrypt, así que no podemos comparar contraseñas aquí.
- * Lo que hacemos: GET /admin, filtramos por correo en el frontend.
- * Si existe el admin, consideramos que es admin (la contraseña la valida el sistema cuando se requiera JWT real).
- */
-export async function findAdminByCorreo(correo: string): Promise<AdminBackend | null> {
+export async function findAdminByCorreo(correo: string, contrasena: string): Promise<AdminBackend | null> {
   try {
-    const { data } = await api.get<AdminBackend[]>("/admin");
-    return data.find((a) => a.correo.toLowerCase() === correo.toLowerCase()) ?? null;
+    const { data } = await api.post<AdminBackend>("/admin/login", { correo, contrasena });
+    return data;
   } catch {
-    return null;
+    return null; // Si da 401 Unauthorized u otro error, devolvemos null
   }
 }
 
@@ -42,14 +37,15 @@ export interface LoginResult {
  * Para Cliente la contraseña viaja sin hash, así que sí la comparamos.
  */
 export async function loginUnificado(correo: string, contrasena: string): Promise<LoginResult> {
-  // 1. Verificar si es Admin
-  const admin = await findAdminByCorreo(correo);
+  // 1. Verificar si es Admin (con validación de contraseña si el backend la devuelve)
+  const admin = await findAdminByCorreo(correo, contrasena);
   if (admin) {
     // Guardar sesión como ADMIN en el store
     auth.login(admin.correo, admin.nombre);
     (auth as any)._setRol?.("ADMIN"); // extensión del store si existe
     localStorage.setItem("cyc-rol", "ADMIN");
     localStorage.setItem("cyc-user", JSON.stringify({
+      id: admin.id,
       name: admin.nombre,
       email: admin.correo,
       rol: "ADMIN",
@@ -58,37 +54,34 @@ export async function loginUnificado(correo: string, contrasena: string): Promis
   }
 
   // 2. Verificar si es Cliente
-  const { data: clientes } = await api.get<Array<{
-    idCliente: number;
-    nombre: string;
-    correo: string;
-    dni: string;
-    contrasena: string;
-  }>>("/cliente");
+  try {
+    const { data: clienteResult } = await api.post<{
+      idCliente: number;
+      nombre: string;
+      correo: string;
+      dni: string;
+      message: string;
+    }>("/cliente/login", { correo, contrasena });
 
-  const cliente = clientes.find((c) => c.correo.toLowerCase() === correo.toLowerCase());
-  if (!cliente) {
-    throw new Error("Correo no registrado. Verificá tus datos.");
+    // Guardar sesión como CLIENTE
+    localStorage.setItem("cyc-rol", "CLIENTE");
+    localStorage.setItem("cyc-user", JSON.stringify({
+      name: clienteResult.nombre,
+      email: clienteResult.correo,
+      idCliente: clienteResult.idCliente,
+      dni: clienteResult.dni,
+      rol: "CLIENTE",
+    }));
+    auth.login(clienteResult.correo, clienteResult.nombre);
+    auth.update({ idCliente: clienteResult.idCliente, dni: clienteResult.dni });
+
+    return { rol: "CLIENTE", nombre: clienteResult.nombre, correo: clienteResult.correo, id: clienteResult.idCliente };
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      throw new Error("Correo o contraseña incorrectos.");
+    }
+    throw new Error(error.response?.data?.message || "Error al conectar con el servidor.");
   }
-
-  // Las contraseñas de cliente no tienen hash en el backend actual
-  if (cliente.contrasena !== contrasena) {
-    throw new Error("Contraseña incorrecta.");
-  }
-
-  // Guardar sesión como CLIENTE
-  localStorage.setItem("cyc-rol", "CLIENTE");
-  localStorage.setItem("cyc-user", JSON.stringify({
-    name: cliente.nombre,
-    email: cliente.correo,
-    idCliente: cliente.idCliente,
-    dni: cliente.dni,
-    rol: "CLIENTE",
-  }));
-  auth.login(cliente.correo, cliente.nombre);
-  auth.update({ idCliente: cliente.idCliente, dni: cliente.dni });
-
-  return { rol: "CLIENTE", nombre: cliente.nombre, correo: cliente.correo, id: cliente.idCliente };
 }
 
 export function getRolActual(): RolUsuario | null {

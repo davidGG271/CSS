@@ -34,7 +34,7 @@ function LoginPage() {
         navigate({ to: "/admin" });
       } else {
         // Redirigir a la tienda del cliente
-        navigate({ to: "/tienda" });
+        navigate({ to: "/" });
       }
     } catch (err: any) {
       setError(err.message ?? "Error al iniciar sesión. Intenta de nuevo.");
@@ -61,7 +61,7 @@ function LoginPage() {
             CyC Computer
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Ingresa con tu cuenta de administrador o cliente
+            Ingresa con tu cuenta para continuar
           </p>
         </div>
 
@@ -134,19 +134,7 @@ function LoginPage() {
           </div>
         </div>
 
-        {/* Info de roles */}
-        <div className="mt-5 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
-          <div className="rounded-xl border border-border bg-card/50 p-3 text-center">
-            <div className="mb-1 text-base">🛡️</div>
-            <p className="font-medium text-foreground">Administrador</p>
-            <p>Accede al panel de gestión</p>
-          </div>
-          <div className="rounded-xl border border-border bg-card/50 p-3 text-center">
-            <div className="mb-1 text-base">🛍️</div>
-            <p className="font-medium text-foreground">Cliente</p>
-            <p>Accede a la tienda online</p>
-          </div>
-        </div>
+
       </div>
     </div>
   );

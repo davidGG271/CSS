@@ -18,15 +18,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PageHeader } from "@/components/admin/PageHeader";
 import { useAdmin } from "@/lib/store";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getProducts, updateProduct } from "@/lib/api";
 
 export const Route = createFileRoute("/admin/inventario")({
   component: InventoryPage,
 });
 
 function InventoryPage() {
-  const products = useAdmin((s) => s.products);
+  const queryClient = useQueryClient();
+  const { data: products = [] } = useQuery({ queryKey: ["productos"], queryFn: getProducts });
   const movements = useAdmin((s) => s.movements);
   const addMovement = useAdmin((s) => s.addMovement);
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, stock }: { id: string; stock: number }) => updateProduct(id, { stock }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["productos"] });
+    },
+  });
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ productId: "", type: "Entrada" as "Entrada" | "Salida", quantity: 1, reason: "" });
@@ -159,10 +169,24 @@ function InventoryPage() {
               e.preventDefault();
               if (!form.productId) { toast.error("Selecciona producto"); return; }
               const p = products.find((x) => x.id === form.productId)!;
-              addMovement({ ...form, productName: p.name });
-              toast.success("Movimiento registrado");
-              setOpen(false);
-              setForm({ productId: "", type: "Entrada", quantity: 1, reason: "" });
+              
+              const stockDiff = form.type === "Entrada" ? form.quantity : -form.quantity;
+              const newStock = p.stock + stockDiff;
+              
+              if (newStock < 0) {
+                toast.error("El stock no puede ser negativo");
+                return;
+              }
+
+              updateMutation.mutate({ id: p.id, stock: newStock }, {
+                onSuccess: () => {
+                  addMovement({ ...form, productName: p.name });
+                  toast.success("Movimiento registrado y stock actualizado");
+                  setOpen(false);
+                  setForm({ productId: "", type: "Entrada", quantity: 1, reason: "" });
+                },
+                onError: () => toast.error("Error al actualizar la base de datos")
+              });
             }}
           >
             <div className="space-y-1.5">

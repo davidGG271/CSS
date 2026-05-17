@@ -46,7 +46,6 @@ export type OrderStatus =
   | "Pendiente"
   | "Pagado"
   | "En preparación"
-  | "Enviado"
   | "Entregado"
   | "Cancelado";
 
@@ -54,7 +53,6 @@ export const ORDER_STATUSES: OrderStatus[] = [
   "Pendiente",
   "Pagado",
   "En preparación",
-  "Enviado",
   "Entregado",
   "Cancelado",
 ];
@@ -206,11 +204,7 @@ const seedOrders: Order[] = [
   { id: "ORD-1038", customerId: "c1", customerName: "Diego Ramírez", date: "2025-05-05", total: 1798, paymentMethod: "Tarjeta", status: "En preparación", address: "Av. Javier Prado 1234, Lima", transactionCode: "TX-998170", items: [{ productId: "p9", name: "ROG Strix X670E-E", quantity: 1, price: 1599 }, { productId: "p6", name: "Vengeance 16GB DDR4 3200", quantity: 1, price: 199 }], history: orderHistory("En preparación") },
 ];
 
-const seedMovements: InventoryMovement[] = [
-  { id: "m1", productId: "p3", productName: "RTX 4070 Super", type: "Entrada", quantity: 5, date: "2025-05-02", reason: "Reposición proveedor" },
-  { id: "m2", productId: "p8", productName: "Crucial P3 500GB", type: "Salida", quantity: 8, date: "2025-05-03", reason: "Venta" },
-  { id: "m3", productId: "p11", productName: "RM850x 80+ Gold", type: "Entrada", quantity: 10, date: "2025-05-04", reason: "Importación" },
-];
+const seedMovements: InventoryMovement[] = [];
 
 const seedCampaigns: NotificationCampaign[] = [
   { id: "n1", title: "Black Friday Gamer", message: "Hasta 30% en GPUs seleccionadas.", type: "Promoción", audience: "Todos los clientes", sentAt: "2025-05-01T10:00:00Z", reach: 1240 },
@@ -289,7 +283,7 @@ export const useAdmin = create<AdminState>()(
         settings: initialSettings,
       }),
     }),
-    { name: "neonforge-admin" },
+    { name: "cyc-admin-v2" },
   ),
 );
 

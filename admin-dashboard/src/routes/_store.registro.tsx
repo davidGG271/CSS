@@ -32,6 +32,15 @@ function Register() {
         correo: form.email,
         contrasena: form.pwd,
       });
+      // Guardar sesión como CLIENTE en localStorage (igual que loginUnificado)
+      localStorage.setItem("cyc-rol", "CLIENTE");
+      localStorage.setItem("cyc-user", JSON.stringify({
+        name: cliente.nombre,
+        email: cliente.correo,
+        idCliente: cliente.idCliente,
+        dni: cliente.dni,
+        rol: "CLIENTE",
+      }));
       auth.register({
         idCliente: cliente.idCliente,
         name: cliente.nombre,
@@ -40,8 +49,9 @@ function Register() {
         phone: form.phone,
       });
       navigate({ to: "/cuenta" });
-    } catch {
-      setErr("No se pudo crear la cuenta. Revisa DNI/correo o intenta nuevamente.");
+    } catch (error: any) {
+      const msg = error.response?.data?.message;
+      setErr(Array.isArray(msg) ? msg[0] : (msg || "No se pudo crear la cuenta. Revisa DNI/correo."));
     } finally {
       setLoading(false);
     }
@@ -62,7 +72,7 @@ function Register() {
           <Field label="Repetir contrasena *" type="password" value={form.pwd2} onChange={upd("pwd2")} />
           <button
             disabled={loading}
-            className="mt-2 w-full rounded-lg bg-gradient-primary py-3 font-semibold text-primary-foreground shadow-glow transition-smooth hover:opacity-90 disabled:opacity-60"
+            className="mt-2 w-full rounded-lg bg-gradient-to-r from-primary to-accent py-3 font-semibold text-white shadow-glow transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Creando..." : "Crear cuenta"}
           </button>

@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useAdmin } from "@/lib/store";
 import { toast } from "sonner";
+import { logoutUnificado } from "@/lib/auth-unified";
+import { useNavigate } from "@tanstack/react-router";
 
 import {
   Sidebar,
@@ -30,15 +32,15 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Productos", url: "/productos", icon: Boxes },
-  { title: "Pedidos", url: "/pedidos", icon: ShoppingCart },
-  { title: "Clientes", url: "/clientes", icon: Users },
-  { title: "Inventario", url: "/inventario", icon: Warehouse },
-  { title: "PCs Armadas", url: "/builds", icon: Cpu },
-  { title: "Notificaciones", url: "/notificaciones", icon: Bell },
-  { title: "Reportes", url: "/reportes", icon: BarChart3 },
-  { title: "Configuración", url: "/configuracion", icon: SettingsIcon },
+  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+  { title: "Productos", url: "/admin/productos", icon: Boxes },
+  { title: "Pedidos", url: "/admin/pedidos", icon: ShoppingCart },
+  { title: "Clientes", url: "/admin/clientes", icon: Users },
+  { title: "Inventario", url: "/admin/inventario", icon: Warehouse },
+  { title: "PCs Armadas", url: "/admin/builds", icon: Cpu },
+  { title: "Notificaciones", url: "/admin/notificaciones", icon: Bell },
+  { title: "Reportes", url: "/admin/reportes", icon: BarChart3 },
+  { title: "Configuración", url: "/admin/configuracion", icon: SettingsIcon },
 ] as const;
 
 export function AppSidebar() {
@@ -46,11 +48,12 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const settings = useAdmin((s) => s.settings);
+  const navigate = useNavigate();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/" className="flex items-center gap-3 px-2 py-3">
+        <Link to="/admin" className="flex items-center gap-3 px-2 py-3">
           <div className="grid h-10 w-10 place-items-center rounded-xl gradient-neon glow font-display text-lg font-black text-white shadow-lg">
             {settings.logoText}
           </div>
@@ -73,7 +76,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
-                const active = item.url === "/" ? pathname === "/" : pathname.startsWith(item.url);
+                const active = item.url === "/admin" ? pathname === "/admin" : pathname.startsWith(item.url);
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
@@ -101,7 +104,11 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => toast.success("Sesión cerrada", { description: "Has salido del panel." })}
+              onClick={() => {
+                logoutUnificado();
+                toast.success("Sesión cerrada", { duration: 2000 });
+                navigate({ to: "/" });
+              }}
               tooltip="Logout"
             >
               <LogOut className="h-4 w-4 text-destructive" />

@@ -133,6 +133,123 @@ export const deleteProduct = async (id: string): Promise<void> => {
 };
 
 // ==========================================
+// INTERFACES + SERVICIOS: CLIENTES
+// ==========================================
+
+export interface BackendClienteCompleto {
+  idCliente: number;
+  nombre: string;
+  dni: string;
+  correo: string;
+}
+
+export interface ClienteFrontend {
+  id: string;
+  name: string;
+  email: string;
+  dni: string;
+  phone: string;
+  address: string;
+  status: "Activo" | "Bloqueado";
+  purchases: number;
+  joinedAt: string;
+}
+
+export const mapClienteToFrontend = (c: BackendClienteCompleto): ClienteFrontend => ({
+  id: String(c.idCliente),
+  name: c.nombre,
+  email: c.correo,
+  dni: c.dni,
+  phone: "",
+  address: "",
+  status: "Activo",
+  purchases: 0,
+  joinedAt: new Date().toISOString().slice(0, 10),
+});
+
+export const getClientes = async (): Promise<ClienteFrontend[]> => {
+  const { data } = await api.get<BackendClienteCompleto[]>("/cliente");
+  return data.map(mapClienteToFrontend);
+};
+
+export const deleteCliente = async (id: string): Promise<void> => {
+  await api.delete(`/cliente/${id}`);
+};
+
+export interface BackendPcArmada {
+  idPcArmada?: number;
+  idCliente?: number;
+  idAdmin?: number;
+  nombre: string;
+  precio: number;
+  stock: number;
+  tipo: string;
+  descripcion: string;
+  imagen?: any;
+  createdAt?: string;
+  updatedAt?: string;
+  productos?: BackendPcArmadaProducto[];
+}
+
+export interface BackendPcArmadaProducto {
+  idPcArmada: number;
+  idProducto: number;
+  cantidad: number;
+  producto?: BackendProducto;
+}
+
+export const getPcArmadas = async (): Promise<BackendPcArmada[]> => {
+  const { data } = await api.get<BackendPcArmada[]>("/pc-armada");
+  return data.map(pc => ({
+    ...pc,
+    imagen: bufferToBase64(pc.imagen)
+  }));
+};
+
+export const createPcArmada = async (pc: Partial<BackendPcArmada>): Promise<BackendPcArmada> => {
+  const payload = { ...pc };
+  if (payload.imagen && typeof payload.imagen === "string") {
+    payload.imagen = base64ToBuffer(payload.imagen) as any;
+  }
+  const { data } = await api.post<BackendPcArmada>("/pc-armada", payload);
+  return data;
+};
+
+export const updatePcArmada = async (id: number, pc: Partial<BackendPcArmada>): Promise<BackendPcArmada> => {
+  const payload = { ...pc };
+  if (payload.imagen && typeof payload.imagen === "string") {
+    payload.imagen = base64ToBuffer(payload.imagen) as any;
+  }
+  const { data } = await api.patch<BackendPcArmada>(`/pc-armada/${id}`, payload);
+  return data;
+};
+
+export const updatePcArmadaStock = async (id: number, stock: number): Promise<BackendPcArmada> => {
+  const { data } = await api.patch<BackendPcArmada>(`/pc-armada/${id}`, { stock });
+  return data;
+};
+
+export const deletePcArmada = async (id: number): Promise<void> => {
+  await api.delete(`/pc-armada/${id}`);
+};
+
+export const createPcArmadaProducto = async (payload: BackendPcArmadaProducto): Promise<void> => {
+  await api.post("/pc-armada-producto", payload);
+};
+
+export interface SendCampaignPayload {
+  titulo: string;
+  mensaje: string;
+  tipo: string;
+  clientes: { nombre: string; correo: string }[];
+  productos: { id: string; nombre: string; precio: number; imagen: string; stock: number }[];
+}
+
+export const sendCampaign = async (payload: SendCampaignPayload): Promise<void> => {
+  await api.post("/notificacion/enviar-campana", payload);
+};
+
+// ==========================================
 // INTERFACES BACKEND: PEDIDOS
 // ==========================================
 
@@ -161,7 +278,7 @@ export interface BackendPago {
 export interface BackendPedido {
   idPedido: number;
   TipoCompra: string;
-  Estado: string; // "Pagado", "En preparación", "Entregado", "Cancelado"
+  estado: string; // lowercase - así lo devuelve el backend
   fecha: string;
   cliente?: BackendCliente;
   detalles?: BackendDetallePedido[];
@@ -173,8 +290,8 @@ export interface BackendPedido {
 // ==========================================
 
 export const mapPedidoToOrder = (item: BackendPedido): Order => {
-  // Historial falso dinámico basado en el estado actual
-  const estadoActual = item.Estado as OrderStatus;
+  // El backend puede devolver estado o Estado según la versión
+  const estadoActual = (item.estado || (item as any).Estado || "Pagado") as OrderStatus;
   const fecha = item.fecha ? String(item.fecha).slice(0, 10) : new Date().toISOString().slice(0, 10);
   
   const history: { status: OrderStatus; date: string }[] = [];
@@ -232,8 +349,7 @@ export const getOrders = async (): Promise<Order[]> => {
 };
 
 export const updateOrderStatus = async (id: string, status: string): Promise<Order> => {
-  // En el backend la columna de estado se llama "Estado"
-  const { data } = await api.patch<BackendPedido>(`/pedido/${id}`, { Estado: status });
+  const { data } = await api.patch<BackendPedido>(`/pedido/${id}`, { estado: status });
   return mapPedidoToOrder(data);
 };
 

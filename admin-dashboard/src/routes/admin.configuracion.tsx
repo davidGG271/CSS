@@ -32,11 +32,7 @@ function SettingsPage() {
           <CardContent className="space-y-3">
             <div className="space-y-1.5"><Label>Nombre de la tienda</Label><Input value={form.storeName} onChange={(e) => setForm({ ...form, storeName: e.target.value })} /></div>
             <div className="space-y-1.5"><Label>Logo (texto)</Label><Input maxLength={3} value={form.logoText} onChange={(e) => setForm({ ...form, logoText: e.target.value })} /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label>Impuesto (%)</Label><Input type="number" value={form.taxRate} onChange={(e) => setForm({ ...form, taxRate: +e.target.value })} /></div>
-              <div className="space-y-1.5"><Label>Moneda</Label><Input value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} /></div>
-            </div>
-            <div className="space-y-1.5"><Label>Envío estándar</Label><Input type="number" value={form.shippingFlat} onChange={(e) => setForm({ ...form, shippingFlat: +e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>Moneda</Label><Input value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} /></div>
             <Button onClick={() => { update(form); toast.success("Configuración guardada"); }} className="gradient-neon text-white">
               <Save className="mr-1 h-4 w-4" /> Guardar
             </Button>
@@ -60,15 +56,6 @@ function SettingsPage() {
               {form.paymentMethods.map((m) => (
                 <Badge key={m} variant="outline" className="border-[var(--neon-cyan)]/30 text-[var(--neon-cyan)]">{m}</Badge>
               ))}
-            </CardContent>
-          </Card>
-
-          <Card className="glow-card border-border/50">
-            <CardHeader><CardTitle className="font-display">Datos demo</CardTitle></CardHeader>
-            <CardContent>
-              <Button variant="outline" onClick={() => { reset(); setForm(settings); toast.success("Datos restaurados"); }}>
-                <RotateCcw className="mr-1 h-4 w-4" /> Restaurar datos demo
-              </Button>
             </CardContent>
           </Card>
         </div>

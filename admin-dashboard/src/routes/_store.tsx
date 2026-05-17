@@ -1,7 +1,14 @@
-import { Outlet, createFileRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { Header, Footer } from "@/components/store/site-chrome";
+import { getRolActual } from "@/lib/auth-unified";
 
 export const Route = createFileRoute("/_store")({
+  beforeLoad: () => {
+    const rol = getRolActual();
+    if (rol === "ADMIN") {
+      throw redirect({ to: "/admin" });
+    }
+  },
   component: StoreLayout,
 });
 
