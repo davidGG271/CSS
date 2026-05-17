@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { LoginAdminDto } from './dto/login-admin.dto';
+import { ChangePasswordAdminDto } from './dto/change-password-admin.dto';
 import { Admin } from './entities/admin.entity';
 
 @Injectable()
@@ -114,5 +115,32 @@ export class AdminService {
       correo: admin.correo,
       message: 'Login exitoso',
     };
+  }
+
+  async changePassword(id: number, changePasswordAdminDto: ChangePasswordAdminDto) {
+    const admin = await this.adminRepository.findOne({ where: { id } });
+
+    if (!admin) {
+      throw new NotFoundException(`Admin con ID ${id} no encontrado`);
+    }
+
+    // Verificar que la contraseña actual sea correcta
+    const contrasenaValida = await bcrypt.compare(
+      changePasswordAdminDto.contrasenaActual,
+      admin.contrasena,
+    );
+
+    if (!contrasenaValida) {
+      throw new UnauthorizedException('La contraseña actual es incorrecta');
+    }
+
+    // Hash de la nueva contraseña
+    const nuevaContrasenaHasheada = await bcrypt.hash(changePasswordAdminDto.nuevaContrasena, 10);
+
+    await this.adminRepository.update(id, {
+      contrasena: nuevaContrasenaHasheada,
+    });
+
+    return { message: 'Contraseña actualizada correctamente' };
   }
 }
