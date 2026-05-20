@@ -17,11 +17,20 @@ import { PagoModule } from './pago/pago.module';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
+      url: process.env.DATABASE_URL,
+      ssl: true,
+      extra: {
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
+      /*
       host: 'localhost',
       port: 5432,
       username: 'postgres',
       password: 'henry',
       database: 'tiendaCyC',
+      */
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
       logging: false,
