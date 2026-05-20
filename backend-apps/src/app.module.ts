@@ -12,6 +12,7 @@ import { AdminModule } from './admin/admin.module';
 import { PcArmadaModule } from './pc-armada/pc-armada.module';
 import { PcArmadaProductoModule } from './pc-armada-producto/pc-armada-producto.module';
 import { PagoModule } from './pago/pago.module';
+import { NotificacionModule } from './notificacion/notificacion.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { PagoModule } from './pago/pago.module';
     PcArmadaModule,
     PcArmadaProductoModule,
     PagoModule,
+    NotificacionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
