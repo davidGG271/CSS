@@ -308,7 +308,7 @@ function BuildsPage() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Nombre de la build</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. NEONFORGE Apex 7800X3D" />
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. CyC Apex 7800X3D" />
             </div>
 
             <div className="space-y-1.5">

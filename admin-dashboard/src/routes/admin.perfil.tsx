@@ -11,31 +11,38 @@ import { User, Mail, Lock, Save } from "lucide-react";
 export const Route = createFileRoute("/admin/perfil")({
   component: AdminProfilePage,
 });
+import { updateAdminProfile, changeAdminPassword } from "@/lib/api";
 
 function AdminProfilePage() {
-  const [user, setUser] = useState({ name: "", email: "" });
+  const [user, setUser] = useState({ id: 0, name: "", email: "" });
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem("cyc-user");
       if (stored) {
         const parsed = JSON.parse(stored);
-        setUser({ name: parsed.name || "Admin Master", email: parsed.email || "admin@cyc.com" });
+        setUser({ id: parsed.id || 0, name: parsed.name || "Admin Master", email: parsed.email || "admin@cyc.com" });
       }
     } catch (e) {
       console.error("Error al cargar perfil de admin", e);
     }
   }, []);
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!user.name || !user.email) {
       toast.error("El nombre y correo no pueden estar vacíos.");
       return;
     }
     
-    // Update local storage representation
+    setLoading(true);
     try {
+      if (user.id) {
+        await updateAdminProfile(user.id, { nombre: user.name, correo: user.email });
+      }
+      
+      // Update local storage representation
       const stored = localStorage.getItem("cyc-user");
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -43,12 +50,17 @@ function AdminProfilePage() {
         parsed.email = user.email;
         localStorage.setItem("cyc-user", JSON.stringify(parsed));
       }
-    } catch (e) {}
-
-    toast.success("Perfil actualizado correctamente");
+      toast.success("Perfil actualizado correctamente");
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Ocurrió un error al actualizar el perfil";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleUpdatePassword = () => {
+  const handleUpdatePassword = async () => {
     if (!passwords.current || !passwords.new || !passwords.confirm) {
       toast.error("Completa todos los campos de contraseña.");
       return;
@@ -62,9 +74,23 @@ function AdminProfilePage() {
       return;
     }
 
-    // Simulamos la actualización (requiere endpoint real en backend)
-    toast.success("Contraseña actualizada con éxito");
-    setPasswords({ current: "", new: "", confirm: "" });
+    setLoading(true);
+    try {
+      if (user.id) {
+        await changeAdminPassword(user.id, { 
+          contrasenaActual: passwords.current, 
+          nuevaContrasena: passwords.new 
+        });
+      }
+      toast.success("Contraseña actualizada con éxito");
+      setPasswords({ current: "", new: "", confirm: "" });
+    } catch (error: any) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Contraseña actual incorrecta u ocurrió un error";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -108,7 +134,7 @@ function AdminProfilePage() {
                 />
               </div>
             </div>
-            <Button onClick={handleSaveProfile} className="w-full sm:w-auto gradient-neon text-white">
+            <Button onClick={handleSaveProfile} disabled={loading} className="w-full sm:w-auto gradient-neon text-white">
               <Save className="mr-2 h-4 w-4" /> Guardar Cambios
             </Button>
           </CardContent>
@@ -153,7 +179,7 @@ function AdminProfilePage() {
                 />
               </div>
             </div>
-            <Button onClick={handleUpdatePassword} variant="outline" className="w-full sm:w-auto border-[var(--neon-purple)]/50 text-[var(--neon-purple)] hover:bg-[var(--neon-purple)]/10">
+            <Button onClick={handleUpdatePassword} disabled={loading} variant="outline" className="w-full sm:w-auto border-[var(--neon-purple)]/50 text-[var(--neon-purple)] hover:bg-[var(--neon-purple)]/10">
               <Lock className="mr-2 h-4 w-4" /> Actualizar Contraseña
             </Button>
           </CardContent>

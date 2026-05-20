@@ -223,6 +223,7 @@ function NotificationsPage() {
               className="gradient-neon text-white" 
               onClick={() => {
                 if (!title) { toast.error("El asunto es obligatorio"); return; }
+                if (!message) { toast.error("El mensaje de la campaña es obligatorio"); return; }
                 if (audienceType === "Elegir" && selectedClientIds.length === 0) { toast.error("Debes seleccionar al menos un cliente"); return; }
                 sendMutation.mutate();
               }}

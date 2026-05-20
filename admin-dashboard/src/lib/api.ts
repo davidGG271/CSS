@@ -353,3 +353,17 @@ export const updateOrderStatus = async (id: string, status: string): Promise<Ord
   return mapPedidoToOrder(data);
 };
 
+// ==========================================
+// SERVICIOS CRUD: ADMIN PERFIL
+// ==========================================
+
+export const updateAdminProfile = async (id: number, data: { nombre?: string; correo?: string }) => {
+  const { data: result } = await api.patch(`/admin/${id}`, data);
+  return result;
+};
+
+export const changeAdminPassword = async (id: number, data: { contrasenaActual: string; nuevaContrasena: string }) => {
+  const { data: result } = await api.patch(`/admin/${id}/change-password`, data);
+  return result;
+};
+

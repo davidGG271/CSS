@@ -77,10 +77,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "NEONFORGE — Admin Panel" },
+      { title: "CyC Computer — Admin Panel" },
       { name: "description", content: "Panel de administración premium para tienda gamer." },
-      { name: "author", content: "NEONFORGE" },
-      { property: "og:title", content: "NEONFORGE — Admin Panel" },
+      { name: "author", content: "CyC Computer" },
+      { property: "og:title", content: "CyC Computer — Admin Panel" },
       { property: "og:description", content: "Centro de control gamer futurista." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

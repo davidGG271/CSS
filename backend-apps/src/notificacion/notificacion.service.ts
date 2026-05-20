@@ -47,7 +47,7 @@ export class NotificacionService {
 
       try {
         await this.transporter.sendMail({
-          from: '"NEONFORGE Tech" <pruebamonitor7@gmail.com>',
+          from: '"CyC Computer" <pruebamonitor7@gmail.com>',
           to: cliente.correo,
           subject: titulo,
           html: htmlContent,
@@ -92,7 +92,7 @@ export class NotificacionService {
       <body style="background-color: #050508; color: #ffffff; font-family: sans-serif;">
         <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="font-size: 28px; font-weight: 900; color: #00e5ff;">NEONFORGE <span style="color: #b400ff;">Tech</span></h1>
+            <h1 style="font-size: 28px; font-weight: 900; color: #00e5ff;">CyC <span style="color: #b400ff;">Computer</span></h1>
             <div style="display: inline-block; background-color: rgba(180, 0, 255, 0.1); color: #b400ff; border: 1px solid rgba(180, 0, 255, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase;">
               ${tipo}
             </div>
@@ -112,7 +112,7 @@ export class NotificacionService {
           </div>
           
           <div style="text-align: center; margin-top: 40px; font-size: 12px; color: #666666;">
-            <p>© 2026 NeonForge Tech Store. Todos los derechos reservados.</p>
+            <p>© 2026 CyC Computer. Todos los derechos reservados.</p>
             <p>Has recibido este correo porque estás suscrito a nuestras notificaciones.</p>
           </div>
         </div>

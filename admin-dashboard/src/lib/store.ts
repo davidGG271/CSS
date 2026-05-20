@@ -212,8 +212,8 @@ const seedCampaigns: NotificationCampaign[] = [
 ];
 
 const initialSettings: Settings = {
-  storeName: "NEONFORGE",
-  logoText: "NF",
+  storeName: "CyC Computer",
+  logoText: "CC",
   taxRate: 18,
   currency: "PEN",
   shippingFlat: 25,
