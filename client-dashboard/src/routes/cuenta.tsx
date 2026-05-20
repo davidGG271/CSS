@@ -16,8 +16,9 @@ function Account() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", dni: "", phone: "", address: "", city: "" });
   const [saved, setSaved] = useState(false);
+  const [activeTab, setActiveTab] = useState<"datos" | "pedidos">("datos");
 
-  const { data: pedidos = [] } = useQuery({
+  const { data: pedidos = [], isLoading: loadingPedidos, error: pedidosError } = useQuery({
     queryKey: ["pedidos", user?.idCliente],
     queryFn: () => getPedidosByCliente(user!.idCliente!),
     enabled: Boolean(user?.idCliente),
@@ -78,67 +79,84 @@ function Account() {
       <div className="mt-10 grid gap-6 lg:grid-cols-3">
         <nav className="rounded-2xl border border-border bg-gradient-card p-2 lg:col-span-1">
           {[
-            { Icon: UserIcon, label: "Datos personales" },
-            { Icon: Package, label: "Mis pedidos" },
-          ].map(({ Icon, label }) => (
-            <div key={label} className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-muted-foreground">
+            { Icon: UserIcon, label: "Datos personales", value: "datos" as const },
+            { Icon: Package, label: "Mis pedidos", value: "pedidos" as const },
+          ].map(({ Icon, label, value }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setActiveTab(value)}
+              className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm transition-smooth ${
+                activeTab === value
+                  ? "bg-primary/10 text-primary-glow"
+                  : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+              }`}
+            >
               <Icon className="h-4 w-4" /> {label}
-            </div>
+            </button>
           ))}
         </nav>
 
         <div className="space-y-6 lg:col-span-2">
-          <form onSubmit={save} className="rounded-2xl border border-border bg-gradient-card p-6">
-            <h2 className="font-display text-xl font-bold">Datos personales</h2>
-            <p className="text-sm text-muted-foreground">Datos guardados localmente hasta activar auth real.</p>
+          {activeTab === "datos" && (
+            <form onSubmit={save} className="rounded-2xl border border-border bg-gradient-card p-6">
+              <h2 className="font-display text-xl font-bold">Datos personales</h2>
+              <p className="text-sm text-muted-foreground">Datos guardados localmente hasta activar auth real.</p>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <Field label="Nombre completo" value={form.name} onChange={upd("name")} />
-              <Field label="Email" type="email" value={form.email} onChange={upd("email")} />
-              <Field label="DNI" value={form.dni} onChange={upd("dni")} />
-              <Field label="Telefono" value={form.phone} onChange={upd("phone")} />
-              <Field label="Ciudad" value={form.city} onChange={upd("city")} />
-              <Field label="Direccion" value={form.address} onChange={upd("address")} className="sm:col-span-2" />
-            </div>
-
-            <div className="mt-6 flex items-center gap-3">
-              <button className="rounded-lg bg-gradient-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
-                Guardar cambios
-              </button>
-              {saved && <span className="text-sm text-success">Guardado</span>}
-            </div>
-          </form>
-
-          <section className="rounded-2xl border border-border bg-gradient-card p-6">
-            <h2 className="font-display text-xl font-bold">Mis pedidos</h2>
-            {pedidos.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">Todavia no hay pedidos registrados para este cliente.</p>
-            ) : (
-              <div className="mt-4 space-y-3">
-                {pedidos.map((pedido) => {
-                  const total = pedido.pagos.reduce((sum, pago) => sum + Number(pago.monto), 0);
-                  return (
-                    <div key={pedido.idPedido} className="rounded-xl border border-border bg-surface/40 p-4">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <p className="font-semibold">Pedido #{pedido.idPedido}</p>
-                          <p className="text-xs text-muted-foreground">{pedido.fecha} - {pedido.estado}</p>
-                        </div>
-                        <p className="font-display text-lg font-bold text-gradient">{formatPrice(total)}</p>
-                      </div>
-                      <div className="mt-3 space-y-1 text-sm text-muted-foreground">
-                        {pedido.detalles.map((detalle) => (
-                          <p key={detalle.idDetallePedido}>
-                            {detalle.cantidad}x {detalle.producto?.nombre ?? detalle.pcArmada?.nombre ?? "Item"} - {formatPrice(Number(detalle.precio))}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <Field label="Nombre completo" value={form.name} onChange={upd("name")} />
+                <Field label="Email" type="email" value={form.email} onChange={upd("email")} />
+                <Field label="DNI" value={form.dni} onChange={upd("dni")} />
+                <Field label="Telefono" value={form.phone} onChange={upd("phone")} />
+                <Field label="Ciudad" value={form.city} onChange={upd("city")} />
+                <Field label="Direccion" value={form.address} onChange={upd("address")} className="sm:col-span-2" />
               </div>
-            )}
-          </section>
+
+              <div className="mt-6 flex items-center gap-3">
+                <button className="rounded-lg bg-gradient-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
+                  Guardar cambios
+                </button>
+                {saved && <span className="text-sm text-success">Guardado</span>}
+              </div>
+            </form>
+          )}
+
+          {activeTab === "pedidos" && (
+            <section className="rounded-2xl border border-border bg-gradient-card p-6">
+              <h2 className="font-display text-xl font-bold">Mis pedidos</h2>
+              {loadingPedidos ? (
+                <p className="mt-3 text-sm text-muted-foreground">Cargando pedidos...</p>
+              ) : pedidosError ? (
+                <p className="mt-3 text-sm text-destructive">No se pudieron cargar tus pedidos.</p>
+              ) : pedidos.length === 0 ? (
+                <p className="mt-3 text-sm text-muted-foreground">Todavia no hay pedidos registrados para este cliente.</p>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {pedidos.map((pedido) => {
+                    const total = pedido.pagos.reduce((sum, pago) => sum + Number(pago.monto), 0);
+                    return (
+                      <div key={pedido.idPedido} className="rounded-xl border border-border bg-surface/40 p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <p className="font-semibold">Pedido #{pedido.idPedido}</p>
+                            <p className="text-xs text-muted-foreground">{pedido.fecha} - {pedido.estado}</p>
+                          </div>
+                          <p className="font-display text-lg font-bold text-gradient">{formatPrice(total)}</p>
+                        </div>
+                        <div className="mt-3 space-y-1 text-sm text-muted-foreground">
+                          {pedido.detalles.map((detalle) => (
+                            <p key={detalle.idDetallePedido}>
+                              {detalle.cantidad}x {detalle.producto?.nombre ?? detalle.pcArmada?.nombre ?? "Item"} - {formatPrice(Number(detalle.precio))}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </div>
     </div>

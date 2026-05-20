@@ -1,4 +1,7 @@
 export type Category =
+  | "pc-componente"
+  | "pc-desktop"
+  | "monitores-accesorios"
   | "componentes"
   | "perifericos"
   | "computadoras"
@@ -41,6 +44,172 @@ export const categories: { slug: Category; name: string; emoji: string; descript
   { slug: "gaming", name: "Gaming", emoji: "🎮", description: "Sillas, joysticks y más" },
 ];
 
+export type CatalogCategorySlug =
+  | "pc-componente"
+  | "pc-desktop"
+  | "monitores-accesorios"
+  | "perifericos";
+
+export const catalogCategories: {
+  slug: CatalogCategorySlug;
+  name: string;
+  emoji: string;
+  description: string;
+  aliases: string[];
+  componentTypes?: ComponentType[];
+  subcategories: string[];
+}[] = [
+  {
+    slug: "pc-componente",
+    name: "PC Componente",
+    emoji: "\u{1F9E9}",
+    description: "Tarjetas graficas, placas madre, procesadores, memoria y mas",
+    aliases: ["pc componente", "componentes", "componente"],
+    componentTypes: ["gpu", "motherboard", "cpu", "storage", "case", "psu", "ram", "cooling"],
+    subcategories: [
+      "Tarjetas Graficas",
+      "Placas Madre",
+      "Procesadores",
+      "Almacenamiento",
+      "Case",
+      "Fuente",
+      "Memorias Ram",
+      "Sistema de Refrigeracion",
+    ],
+  },
+  {
+    slug: "pc-desktop",
+    name: "PC Desktop",
+    emoji: "\u{1F5A5}\uFE0F",
+    description: "Computadoras de escritorio y equipos gamer",
+    aliases: ["pc desktop", "computadoras", "pc armada", "desktop", "pc gamer", "pc de escritorio"],
+    subcategories: ["Pc de Escritorio", "Pc Gamer"],
+  },
+  {
+    slug: "monitores-accesorios",
+    name: "Monitores & Accesorios",
+    emoji: "\u{1F5BC}\uFE0F",
+    description: "Monitores gamer, curvos, 4K, profesionales y smart",
+    aliases: ["monitores accesorios", "monitores", "monitor"],
+    subcategories: [
+      "Monitores Gamer",
+      "Monitores Curvo",
+      "Monitores 4k UHD",
+      "Monitores Profesional",
+      "Monitores Smart",
+      "Monitores Standard",
+    ],
+  },
+  {
+    slug: "perifericos",
+    name: "Perifericos",
+    emoji: "\u2328\uFE0F",
+    description: "Teclados, mouse, mouse pad, audifonos y parlantes",
+    aliases: ["perifericos", "periferico", "teclado", "mouse", "mouse pad", "audifonos", "parlantes"],
+    subcategories: ["Teclados", "Mouse", "Mouse Pad", "Audifonos", "Parlantes"],
+  },
+];
+
+const catalogSubcategoryMatchers: Record<
+  string,
+  { componentTypes?: ComponentType[]; aliases: string[] }
+> = {
+  "tarjetas graficas": { componentTypes: ["gpu"], aliases: ["tarjeta grafica", "gpu", "geforce", "radeon", "rtx"] },
+  "placas madre": { componentTypes: ["motherboard"], aliases: ["placa madre", "motherboard", "mainboard"] },
+  procesadores: { componentTypes: ["cpu"], aliases: ["procesador", "cpu", "ryzen", "intel core"] },
+  almacenamiento: { componentTypes: ["storage"], aliases: ["almacenamiento", "ssd", "hdd", "nvme", "disco"] },
+  case: { componentTypes: ["case"], aliases: ["case", "gabinete"] },
+  fuente: { componentTypes: ["psu"], aliases: ["fuente", "psu", "power supply"] },
+  "memorias ram": { componentTypes: ["ram"], aliases: ["memoria ram", "ram", "ddr4", "ddr5"] },
+  "sistema de refrigeracion": {
+    componentTypes: ["cooling"],
+    aliases: ["refrigeracion", "cooling", "cooler", "aio"],
+  },
+  "pc de escritorio": { aliases: ["pc de escritorio", "desktop", "pc armada", "computadora"] },
+  "pc gamer": { aliases: ["pc gamer", "gamer", "gaming"] },
+  "monitores gamer": { aliases: ["monitor gamer", "gaming", "ultragear"] },
+  "monitores curvo": { aliases: ["monitor curvo", "curvo", "curved"] },
+  "monitores 4k uhd": { aliases: ["4k", "uhd"] },
+  "monitores profesional": { aliases: ["profesional", "pro", "studio"] },
+  "monitores smart": { aliases: ["smart"] },
+  "monitores standard": { aliases: ["standard", "estandar"] },
+  teclados: { aliases: ["teclado", "keyboard"] },
+  mouse: { aliases: ["mouse"] },
+  "mouse pad": { aliases: ["mouse pad", "mousepad"] },
+  audifonos: { aliases: ["audifonos", "auriculares", "headset"] },
+  parlantes: { aliases: ["parlantes", "speaker", "speakers"] },
+};
+
+export function normalizeText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+export function productMatchesCatalogCategory(product: Product, slug: CatalogCategorySlug) {
+  const category = catalogCategories.find((item) => item.slug === slug);
+  if (!category) return false;
+
+  if (category.componentTypes?.includes(product.componentType as ComponentType)) {
+    return true;
+  }
+
+  const haystack = [
+    product.category,
+    product.componentType ?? "",
+    product.name,
+    product.brand,
+    product.description,
+  ]
+    .map(normalizeText)
+    .join(" ");
+
+  return [...category.aliases, ...category.subcategories]
+    .map(normalizeText)
+    .some((alias) => haystack.includes(alias));
+}
+
+export function productMatchesCatalogSubcategory(product: Product, subcategory: string) {
+  const matcher = catalogSubcategoryMatchers[normalizeText(subcategory)];
+  if (!matcher) return true;
+
+  if (matcher.componentTypes?.includes(product.componentType as ComponentType)) {
+    return true;
+  }
+
+  const haystack = [
+    product.category,
+    product.componentType ?? "",
+    product.name,
+    product.brand,
+    product.description,
+  ]
+    .map(normalizeText)
+    .join(" ");
+
+  return matcher.aliases.map(normalizeText).some((alias) => haystack.includes(alias));
+}
+
+export function productMatchesSearch(product: Product, query: string) {
+  const terms = normalizeText(query).split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return true;
+
+  const haystack = [
+    product.name,
+    product.brand,
+    product.category,
+    product.componentType ?? "",
+    product.description,
+    ...product.specs.flatMap((spec) => [spec.label, spec.value]),
+  ]
+    .map(normalizeText)
+    .join(" ");
+
+  return terms.every((term) => haystack.includes(term));
+}
+
 export const builderSlots: { type: ComponentType; name: string; emoji: string; required: boolean }[] = [
   { type: "cpu", name: "Procesador (CPU)", emoji: "🔥", required: true },
   { type: "motherboard", name: "Motherboard", emoji: "🧠", required: true },
@@ -49,7 +218,7 @@ export const builderSlots: { type: ComponentType; name: string; emoji: string; r
   { type: "storage", name: "Almacenamiento", emoji: "💾", required: true },
   { type: "psu", name: "Fuente (PSU)", emoji: "🔌", required: true },
   { type: "case", name: "Gabinete", emoji: "📦", required: true },
-  { type: "cooling", name: "Refrigeración", emoji: "❄️", required: false },
+  { type: "cooling", name: "Refrigeración", emoji: "❄️", required: true },
 ];
 
 export const products: Product[] = [
@@ -602,4 +771,7 @@ export const products: Product[] = [
 ];
 
 export const formatPrice = (n: number) =>
-  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", maximumFractionDigits: 0 }).format(n);
+
+export const SHIPPING_FEE_PEN = 15;
+export const FREE_SHIPPING_THRESHOLD_PEN = 500;

@@ -19,6 +19,7 @@ export const Route = createFileRoute("/armar-pc")({
 });
 
 type Selection = Partial<Record<ComponentType, string>>;
+const ASSEMBLY_FEE_PEN = 50;
 
 function BuilderPage() {
   const navigate = useNavigate();
@@ -29,7 +30,6 @@ function BuilderPage() {
   });
   const [selection, setSelection] = useState<Selection>({});
   const [openSlot, setOpenSlot] = useState<ComponentType | null>(null);
-  const [buildName, setBuildName] = useState("Mi PC personalizada");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
 
@@ -56,12 +56,18 @@ function BuilderPage() {
   }, [products, selection]);
 
   const subtotal = selectedProducts.reduce((sum, item) => sum + item.product.price, 0);
-  const assemblyFee = subtotal > 0 ? 49990 : 0;
+  const assemblyFee = subtotal > 0 ? ASSEMBLY_FEE_PEN : 0;
   const total = subtotal + assemblyFee;
   const requiredFilled = builderSlots.filter((slot) => slot.required).every((slot) => selection[slot.type]);
+  const selectedOutOfStock = selectedProducts.find(({ product }) => product.stock <= 0);
+  const canAddBuild = requiredFilled && !selectedOutOfStock;
 
   const handleAddToCart = async () => {
     if (!requiredFilled) return;
+    if (selectedOutOfStock) {
+      setErr(`${selectedOutOfStock.product.name} no tiene stock disponible.`);
+      return;
+    }
     if (!user?.idCliente) return navigate({ to: "/login" });
 
     setSaving(true);
@@ -69,7 +75,7 @@ function BuilderPage() {
     try {
       const pcArmada = await createPcArmada({
         idCliente: user.idCliente,
-        nombre: buildName.trim() || "Mi PC personalizada",
+        nombre: "PC personalizada",
         precio: total,
         stock: 1,
         tipo: "custom",
@@ -157,16 +163,20 @@ function BuilderPage() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       {list.map((product) => {
                         const active = selectedId === product.id;
+                        const outOfStock = product.stock <= 0;
                         return (
                           <button
                             key={product.id}
                             type="button"
+                            disabled={outOfStock}
                             onClick={() => {
                               setSelection((prev) => ({ ...prev, [slot.type]: product.id }));
                               setOpenSlot(null);
                             }}
                             className={`flex gap-3 rounded-xl border p-3 text-left transition-smooth ${
-                              active ? "border-primary bg-primary/10 shadow-glow" : "border-border bg-surface/50 hover:border-primary/50"
+                              active
+                                ? "border-primary bg-primary/10 shadow-glow"
+                                : "border-border bg-surface/50 hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-border"
                             }`}
                           >
                             <span className="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-surface text-3xl">
@@ -176,6 +186,9 @@ function BuilderPage() {
                               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{product.brand}</p>
                               <p className="text-sm font-semibold leading-tight">{product.name}</p>
                               <p className="mt-1 font-display text-base font-bold text-gradient">{formatPrice(product.price)}</p>
+                              <p className={`mt-1 text-xs ${outOfStock ? "text-destructive" : "text-muted-foreground"}`}>
+                                {outOfStock ? "Sin stock" : `${product.stock} en stock`}
+                              </p>
                             </div>
                           </button>
                         );
@@ -203,12 +216,6 @@ function BuilderPage() {
 
         <aside className="h-fit rounded-2xl border border-border bg-gradient-card p-6 shadow-card lg:sticky lg:top-20">
           <h2 className="font-display text-xl font-bold">Tu build</h2>
-          <label className="mt-4 block text-xs font-medium text-muted-foreground">Nombre de la PC</label>
-          <input
-            value={buildName}
-            onChange={(event) => setBuildName(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
-          />
 
           <div className="mt-4 space-y-2 text-sm">
             {selectedProducts.length === 0 && (
@@ -223,6 +230,9 @@ function BuilderPage() {
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{slot.name}</p>
                     <p className="line-clamp-1 text-sm">{product.name}</p>
+                    <p className={`text-xs ${product.stock <= 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                      {product.stock <= 0 ? "Sin stock" : `${product.stock} en stock`}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{formatPrice(product.price)}</span>
@@ -257,12 +267,13 @@ function BuilderPage() {
           </div>
 
           {!requiredFilled && <p className="mt-3 text-xs text-muted-foreground">Faltan completar los componentes obligatorios.</p>}
+          {selectedOutOfStock && <p className="mt-3 text-xs text-destructive">Hay componentes seleccionados sin stock.</p>}
           {err && <p className="mt-3 text-xs text-destructive">{err}</p>}
 
           <button
             type="button"
             onClick={handleAddToCart}
-            disabled={!requiredFilled || saving}
+            disabled={!canAddBuild || saving}
             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-primary py-3 font-semibold text-primary-foreground shadow-glow transition-smooth hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="h-4 w-4" /> {saving ? "Guardando..." : "Agregar PC al carrito"}

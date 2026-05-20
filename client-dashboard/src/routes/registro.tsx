@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { AxiosError } from "axios";
 import { auth } from "@/lib/auth-store";
 import { createCliente } from "@/lib/clients-api";
 
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/registro")({
 
 function Register() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", dni: "", email: "", phone: "", pwd: "", pwd2: "" });
+  const [form, setForm] = useState({ name: "", dni: "", email: "", pwd: "", pwd2: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -21,6 +22,7 @@ function Register() {
     event.preventDefault();
     if (!form.name || !form.dni || !form.email || !form.pwd) return setErr("Completa los campos obligatorios");
     if (form.dni.length !== 8) return setErr("El DNI debe tener 8 digitos");
+    if (form.pwd.length < 6) return setErr("La contrasena debe tener al menos 6 caracteres");
     if (form.pwd !== form.pwd2) return setErr("Las contrasenas no coinciden");
 
     setLoading(true);
@@ -37,11 +39,12 @@ function Register() {
         name: cliente.nombre,
         email: cliente.correo,
         dni: cliente.dni,
-        phone: form.phone,
       });
       navigate({ to: "/cuenta" });
-    } catch {
-      setErr("No se pudo crear la cuenta. Revisa DNI/correo o intenta nuevamente.");
+    } catch (error) {
+      const response = error instanceof AxiosError ? error.response?.data : null;
+      const message = Array.isArray(response?.message) ? response.message[0] : response?.message;
+      setErr(message ?? "No se pudo crear la cuenta. Revisa DNI/correo o intenta nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -57,7 +60,6 @@ function Register() {
           <Field label="Nombre completo *" value={form.name} onChange={upd("name")} />
           <Field label="DNI *" value={form.dni} onChange={upd("dni")} maxLength={8} />
           <Field label="Email *" type="email" value={form.email} onChange={upd("email")} />
-          <Field label="Telefono" value={form.phone} onChange={upd("phone")} />
           <Field label="Contrasena *" type="password" value={form.pwd} onChange={upd("pwd")} />
           <Field label="Repetir contrasena *" type="password" value={form.pwd2} onChange={upd("pwd2")} />
           <button

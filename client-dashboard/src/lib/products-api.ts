@@ -12,6 +12,24 @@ export interface ProductoBackend {
   descripcion: string;
 }
 
+function getProductEmoji(product: ProductoBackend) {
+  const type = product.tipo?.toLowerCase();
+  const category = product.categoria?.toLowerCase();
+
+  if (type === "gpu") return "\u{1F3AE}";
+  if (type === "cpu") return "\u{1F525}";
+  if (type === "motherboard") return "\u{1F9E0}";
+  if (type === "ram") return "\u26A1";
+  if (type === "storage") return "\u{1F4BE}";
+  if (type === "psu") return "\u{1F50C}";
+  if (type === "case") return "\u{1F4E6}";
+  if (type === "cooling") return "\u2744\uFE0F";
+  if (category?.includes("monitor")) return "\u{1F5BC}\uFE0F";
+  if (category?.includes("computadora") || category?.includes("desktop")) return "\u{1F5A5}\uFE0F";
+  if (category?.includes("periferico")) return "\u2328\uFE0F";
+  return "\u{1F9E9}";
+}
+
 export function mapProducto(p: ProductoBackend): Product {
   return {
     id: String(p.idProducto),
@@ -24,7 +42,7 @@ export function mapProducto(p: ProductoBackend): Product {
     description: p.descripcion,
     rating: 5,
     specs: [],
-    emoji: "🧩",
+    emoji: getProductEmoji(p),
   };
 }
 

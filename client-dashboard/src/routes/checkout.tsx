@@ -4,7 +4,7 @@ import { CheckCircle2, CreditCard, Lock } from "lucide-react";
 import { useAuth } from "@/lib/auth-store";
 import { cart, useCart } from "@/lib/cart-store";
 import { checkoutCart } from "@/lib/orders-api";
-import { formatPrice } from "@/lib/products";
+import { FREE_SHIPPING_THRESHOLD_PEN, SHIPPING_FEE_PEN, formatPrice } from "@/lib/products";
 
 export const Route = createFileRoute("/checkout")({
   component: Checkout,
@@ -20,7 +20,7 @@ function Checkout() {
   const [err, setErr] = useState("");
   const [paying, setPaying] = useState(false);
 
-  const shipping = subtotal > 500000 || subtotal === 0 ? 0 : 8990;
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD_PEN || subtotal === 0 ? 0 : SHIPPING_FEE_PEN;
   const total = subtotal + shipping;
 
   if (!user?.idCliente && step !== "done") {
@@ -91,20 +91,20 @@ function Checkout() {
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
-        <form onSubmit={step === "info" ? (event) => { event.preventDefault(); setStep("pay"); } : finish} className="space-y-6">
+        <form noValidate onSubmit={step === "info" ? (event) => { event.preventDefault(); setStep("pay"); } : finish} className="space-y-6">
           {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{err}</p>}
 
           {step === "info" && (
             <section className="rounded-2xl border border-border bg-gradient-card p-6">
               <h2 className="font-display text-xl font-bold">Datos de envio</h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <Field label="Nombre completo" defaultValue={user?.name} required />
-                <Field label="Email" type="email" defaultValue={user?.email} required />
-                <Field label="Telefono" defaultValue={user?.phone} required />
-                <Field label="DNI" defaultValue={user?.dni} required />
-                <Field label="Direccion" defaultValue={user?.address} required className="sm:col-span-2" />
-                <Field label="Ciudad" defaultValue={user?.city} required />
-                <Field label="Codigo postal" required />
+                <Field label="Nombre completo" defaultValue={user?.name} />
+                <Field label="Email" defaultValue={user?.email} />
+                <Field label="Telefono" defaultValue={user?.phone} />
+                <Field label="DNI" defaultValue={user?.dni} />
+                <Field label="Direccion" defaultValue={user?.address} className="sm:col-span-2" />
+                <Field label="Ciudad" defaultValue={user?.city} />
+                <Field label="Codigo postal" />
               </div>
               <button type="submit" className="mt-6 w-full rounded-lg bg-gradient-primary py-3 font-semibold text-primary-foreground shadow-glow">
                 Continuar al pago
@@ -136,10 +136,10 @@ function Checkout() {
 
               {method === "card" && (
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <Field label="Numero de tarjeta" placeholder="1234 5678 9012 3456" required className="sm:col-span-2" />
-                  <Field label="Titular" required />
-                  <Field label="Vencimiento" placeholder="MM/AA" required />
-                  <Field label="CVV" placeholder="123" required />
+                  <Field label="Numero de tarjeta" placeholder="1234 5678 9012 3456" className="sm:col-span-2" />
+                  <Field label="Titular" />
+                  <Field label="Vencimiento" placeholder="MM/AA" />
+                  <Field label="CVV" placeholder="123" />
                 </div>
               )}
 

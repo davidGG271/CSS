@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trash2, ShoppingBag } from "lucide-react";
 import { useCart, cart } from "@/lib/cart-store";
-import { formatPrice } from "@/lib/products";
+import { FREE_SHIPPING_THRESHOLD_PEN, SHIPPING_FEE_PEN, formatPrice } from "@/lib/products";
 
 export const Route = createFileRoute("/carrito")({
   component: CartPage,
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/carrito")({
 
 function CartPage() {
   const { items, subtotal, count } = useCart();
-  const shipping = subtotal > 500000 || subtotal === 0 ? 0 : 8990;
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD_PEN || subtotal === 0 ? 0 : SHIPPING_FEE_PEN;
   const total = subtotal + shipping;
 
   return (

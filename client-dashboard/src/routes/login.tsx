@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { auth, useAuth } from "@/lib/auth-store";
-import { findClienteByCorreo } from "@/lib/clients-api";
+import { loginCliente } from "@/lib/clients-api";
 
 export const Route = createFileRoute("/login")({
   component: Login,
@@ -34,20 +34,20 @@ function Login() {
     setLoading(true);
     setErr("");
     try {
-      const cliente = await findClienteByCorreo(email);
-      if (!cliente) {
-        setErr("No encontramos un cliente con ese correo.");
-        return;
-      }
+      const cliente = await loginCliente({
+        correo: email,
+        contrasena: pwd,
+      });
 
-      auth.login(cliente.correo, cliente.nombre);
-      auth.update({
+      auth.register({
         idCliente: cliente.idCliente,
+        name: cliente.nombre,
+        email: cliente.correo,
         dni: cliente.dni,
       });
       navigate({ to: "/cuenta" });
     } catch {
-      setErr("No se pudo iniciar sesion. Revisa que la API este activa.");
+      setErr("Correo o contrasena incorrectos.");
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ function Login() {
     <div className="container mx-auto grid max-w-md px-4 py-16">
       <div className="rounded-2xl border border-border bg-gradient-card p-8 shadow-elegant">
         <h1 className="font-display text-3xl font-bold">Bienvenido de nuevo</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Ingreso temporal por correo hasta activar auth real.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Inicia sesion con tu correo y contrasena.</p>
         <form onSubmit={submit} className="mt-6 space-y-4">
           {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{err}</p>}
           <div>
