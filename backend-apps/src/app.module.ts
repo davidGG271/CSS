@@ -12,16 +12,26 @@ import { AdminModule } from './admin/admin.module';
 import { PcArmadaModule } from './pc-armada/pc-armada.module';
 import { PcArmadaProductoModule } from './pc-armada-producto/pc-armada-producto.module';
 import { PagoModule } from './pago/pago.module';
+import { NotificacionModule } from './notificacion/notificacion.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
+      url: process.env.DATABASE_URL,
+      ssl: true,
+      extra: {
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
+      /*
       host: 'localhost',
       port: 5432,
       username: 'postgres',
       password: '301204',
       database: 'tiendaCyC',
+      */
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
       logging: false,
@@ -36,6 +46,7 @@ import { PagoModule } from './pago/pago.module';
     PcArmadaModule,
     PcArmadaProductoModule,
     PagoModule,
+    NotificacionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
