@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/admin-dashboard/dist/index.html"
+    },
+    {
+      "source": "/admin/:match*",
+      "destination": "/admin-dashboard/dist/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/client-dashboard/.vercel/output/static/$1"
+    }
+  ]
+}

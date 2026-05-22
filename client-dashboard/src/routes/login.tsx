@@ -29,11 +29,30 @@ function Login() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!email || !pwd) return setErr("Completa email y contrasena");
+    if (!email || !pwd) return setErr("Completa email y contraseña");
 
     setLoading(true);
     setErr("");
     try {
+      const { api } = await import("@/lib/api");
+      // 1. Intentar como Administrador primero
+      try {
+        const { data: adminData } = await api.post("/admin/login", {
+          correo: email,
+          contrasena: pwd,
+        });
+        
+        if (adminData && adminData.correo) {
+          // Es administrador, redirigir al dashboard de admin
+          // Forzamos una recarga completa para salir del router del cliente y entrar al de Vite
+          window.location.href = "/admin";
+          return;
+        }
+      } catch (adminErr) {
+        // Falló como admin, pasamos a intentar como cliente
+      }
+
+      // 2. Intentar como Cliente
       const cliente = await loginCliente({
         correo: email,
         contrasena: pwd,
@@ -47,7 +66,7 @@ function Login() {
       });
       navigate({ to: "/cuenta" });
     } catch {
-      setErr("Correo o contrasena incorrectos.");
+      setErr("Correo o contraseña incorrectos.");
     } finally {
       setLoading(false);
     }
