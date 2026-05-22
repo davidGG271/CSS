@@ -12,21 +12,62 @@ export const Route = createFileRoute("/registro")({
 function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", dni: "", email: "", pwd: "", pwd2: "" });
+  const [touched, setTouched] = useState<Record<keyof typeof form, boolean>>({
+    name: false,
+    dni: false,
+    email: false,
+    pwd: false,
+    pwd2: false,
+  });
   const [err, setErr] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const upd = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [key]: event.target.value });
 
+  const markTouched = (key: keyof typeof form) => () =>
+    setTouched((prev) => ({ ...prev, [key]: true }));
+
+  const fieldErrors = {
+    name: !form.name.trim() ? "Ingresa tu nombre completo" : "",
+    dni: !form.dni ? "Ingresa tu DNI" : !/^\d{8}$/.test(form.dni) ? "El DNI debe tener 8 digitos" : "",
+    email: !form.email
+      ? "Ingresa tu correo"
+      : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+        ? "Ingresa un correo valido"
+        : "",
+    pwd: !form.pwd
+      ? "Ingresa una contrasena"
+      : form.pwd.length < 6
+        ? "La contrasena debe tener al menos 6 caracteres"
+        : "",
+    pwd2: !form.pwd2
+      ? "Repite la contrasena"
+      : form.pwd !== form.pwd2
+        ? "Las contrasenas no coinciden"
+        : "",
+  };
+
+  const visibleError = (key: keyof typeof form) => {
+    const shouldShow = touched[key] || Boolean(form[key]);
+    return shouldShow ? fieldErrors[key] : "";
+  };
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!form.name || !form.dni || !form.email || !form.pwd) return setErr("Completa los campos obligatorios");
-    if (form.dni.length !== 8) return setErr("El DNI debe tener 8 digitos");
-    if (form.pwd.length < 6) return setErr("La contrasena debe tener al menos 6 caracteres");
-    if (form.pwd !== form.pwd2) return setErr("Las contrasenas no coinciden");
+    setTouched({ name: true, dni: true, email: true, pwd: true, pwd2: true });
+
+    const firstError = Object.values(fieldErrors).find(Boolean);
+    if (firstError) {
+      setSuccess("");
+      setErr("Revisa los campos marcados antes de continuar.");
+      return;
+    }
 
     setLoading(true);
     setErr("");
+    setSuccess("");
     try {
       const cliente = await createCliente({
         nombre: form.name,
@@ -40,7 +81,8 @@ function Register() {
         email: cliente.correo,
         dni: cliente.dni,
       });
-      navigate({ to: "/cuenta" });
+      setSuccess("Cuenta creada correctamente. Redirigiendo al inicio...");
+      setTimeout(() => navigate({ to: "/" }), 1200);
     } catch (error) {
       const response = error instanceof AxiosError ? error.response?.data : null;
       const message = Array.isArray(response?.message) ? response.message[0] : response?.message;
@@ -57,11 +99,12 @@ function Register() {
         <p className="mt-1 text-sm text-muted-foreground">Sumate a CyC Computer y accede a beneficios exclusivos.</p>
         <form onSubmit={submit} className="mt-6 space-y-3">
           {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{err}</p>}
-          <Field label="Nombre completo *" value={form.name} onChange={upd("name")} />
-          <Field label="DNI *" value={form.dni} onChange={upd("dni")} maxLength={8} />
-          <Field label="Email *" type="email" value={form.email} onChange={upd("email")} />
-          <Field label="Contrasena *" type="password" value={form.pwd} onChange={upd("pwd")} />
-          <Field label="Repetir contrasena *" type="password" value={form.pwd2} onChange={upd("pwd2")} />
+          {success && <p className="rounded-lg bg-success/10 px-3 py-2 text-sm text-success">{success}</p>}
+          <Field label="Nombre completo *" value={form.name} onChange={upd("name")} onBlur={markTouched("name")} error={visibleError("name")} />
+          <Field label="DNI *" value={form.dni} onChange={upd("dni")} onBlur={markTouched("dni")} maxLength={8} error={visibleError("dni")} />
+          <Field label="Email *" type="email" value={form.email} onChange={upd("email")} onBlur={markTouched("email")} error={visibleError("email")} />
+          <Field label="Contrasena *" type="password" value={form.pwd} onChange={upd("pwd")} onBlur={markTouched("pwd")} error={visibleError("pwd")} />
+          <Field label="Repetir contrasena *" type="password" value={form.pwd2} onChange={upd("pwd2")} onBlur={markTouched("pwd2")} error={visibleError("pwd2")} />
           <button
             disabled={loading}
             className="mt-2 w-full rounded-lg bg-gradient-primary py-3 font-semibold text-primary-foreground shadow-glow transition-smooth hover:opacity-90 disabled:opacity-60"
@@ -77,14 +120,24 @@ function Register() {
   );
 }
 
-function Field({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+function Field({
+  label,
+  error,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string }) {
   return (
     <label className="block">
       <span className="mb-1 block text-xs font-medium text-muted-foreground">{label}</span>
       <input
         {...props}
-        className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+        aria-invalid={Boolean(error)}
+        className={`w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-smooth focus:ring-2 ${
+          error
+            ? "border-destructive focus:border-destructive focus:ring-destructive/30"
+            : "border-input focus:border-primary focus:ring-primary/30"
+        }`}
       />
+      {error && <span className="mt-1 block text-xs text-destructive">{error}</span>}
     </label>
   );
 }

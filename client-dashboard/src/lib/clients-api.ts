@@ -19,6 +19,13 @@ export interface LoginClienteInput {
   contrasena: string;
 }
 
+export interface UpdateClienteInput {
+  nombre?: string;
+  dni?: string;
+  correo?: string;
+  contrasena?: string;
+}
+
 export interface LoginClienteResponse extends ClienteBackend {
   message: string;
 }
@@ -30,6 +37,11 @@ export async function createCliente(input: CreateClienteInput) {
 
 export async function loginCliente(input: LoginClienteInput) {
   const { data } = await api.post<LoginClienteResponse>("/cliente/login", input);
+  return data;
+}
+
+export async function updateCliente(idCliente: number, input: UpdateClienteInput) {
+  const { data } = await api.patch<ClienteBackend>(`/cliente/${idCliente}`, input);
   return data;
 }
 

@@ -79,9 +79,18 @@ function Catalog() {
         ))}
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {list.map((p) => <ProductCard key={p.id} product={p} />)}
-      </div>
+      {list.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-surface/40 p-10 text-center">
+          <p className="font-semibold">No se encontraron productos</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {q ? `No hay resultados para "${q}".` : "Intenta con otra busqueda o categoria."}
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {list.map((p) => <ProductCard key={p.id} product={p} />)}
+        </div>
+      )}
     </div>
   );
 }

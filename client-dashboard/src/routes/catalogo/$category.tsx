@@ -110,7 +110,14 @@ function CategoryPage() {
       </div>
 
       {list.length === 0 ? (
-        <p className="text-muted-foreground">Pronto agregaremos productos en esta categoría.</p>
+        <div className="rounded-2xl border border-dashed border-border bg-surface/40 p-10 text-center">
+          <p className="font-semibold">No se encontraron productos</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {q
+              ? `No hay resultados para "${q}"${activeSubcategory ? ` en ${activeSubcategory}` : ""}.`
+              : "Pronto agregaremos productos en esta categoria."}
+          </p>
+        </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {list.map((p) => <ProductCard key={p.id} product={p} />)}

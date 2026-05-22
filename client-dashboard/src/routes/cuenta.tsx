@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 import { LogOut, Package, User as UserIcon } from "lucide-react";
 import { auth, useAuth } from "@/lib/auth-store";
+import { updateCliente } from "@/lib/clients-api";
 import { getPedidosByCliente } from "@/lib/orders-api";
 import { formatPrice } from "@/lib/products";
 
@@ -14,8 +16,10 @@ export const Route = createFileRoute("/cuenta")({
 function Account() {
   const user = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", dni: "", phone: "", address: "", city: "" });
+  const [form, setForm] = useState({ name: "", email: "", dni: "" });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
   const [activeTab, setActiveTab] = useState<"datos" | "pedidos">("datos");
 
   const { data: pedidos = [], isLoading: loadingPedidos, error: pedidosError } = useQuery({
@@ -29,9 +33,6 @@ function Account() {
       name: user.name,
       email: user.email,
       dni: user.dni ?? "",
-      phone: user.phone ?? "",
-      address: user.address ?? "",
-      city: user.city ?? "",
     });
   }, [user]);
 
@@ -49,11 +50,41 @@ function Account() {
   const upd = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [key]: event.target.value });
 
-  const save = (event: React.FormEvent) => {
+  const save = async (event: React.FormEvent) => {
     event.preventDefault();
-    auth.update(form);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    if (!user.idCliente) return setErr("No se encontro el ID del cliente.");
+    if (!form.name.trim() || !form.email.trim() || !form.dni.trim()) {
+      return setErr("Completa nombre, email y DNI.");
+    }
+    if (!/^\d{8}$/.test(form.dni)) {
+      return setErr("El DNI debe tener 8 digitos.");
+    }
+
+    setSaving(true);
+    setErr("");
+    setSaved(false);
+    try {
+      const cliente = await updateCliente(user.idCliente, {
+        nombre: form.name,
+        correo: form.email,
+        dni: form.dni,
+      });
+
+      auth.update({
+        idCliente: cliente.idCliente,
+        name: cliente.nombre,
+        email: cliente.correo,
+        dni: cliente.dni,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      const response = error instanceof AxiosError ? error.response?.data : null;
+      const message = Array.isArray(response?.message) ? response.message[0] : response?.message;
+      setErr(message ?? "No se pudieron guardar los cambios.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -101,20 +132,21 @@ function Account() {
           {activeTab === "datos" && (
             <form onSubmit={save} className="rounded-2xl border border-border bg-gradient-card p-6">
               <h2 className="font-display text-xl font-bold">Datos personales</h2>
-              <p className="text-sm text-muted-foreground">Datos guardados localmente hasta activar auth real.</p>
+              <p className="text-sm text-muted-foreground">Estos datos se actualizan en tu cuenta registrada.</p>
+              {err && <p className="mt-4 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{err}</p>}
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <Field label="Nombre completo" value={form.name} onChange={upd("name")} />
                 <Field label="Email" type="email" value={form.email} onChange={upd("email")} />
                 <Field label="DNI" value={form.dni} onChange={upd("dni")} />
-                <Field label="Telefono" value={form.phone} onChange={upd("phone")} />
-                <Field label="Ciudad" value={form.city} onChange={upd("city")} />
-                <Field label="Direccion" value={form.address} onChange={upd("address")} className="sm:col-span-2" />
               </div>
 
               <div className="mt-6 flex items-center gap-3">
-                <button className="rounded-lg bg-gradient-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
-                  Guardar cambios
+                <button
+                  disabled={saving}
+                  className="rounded-lg bg-gradient-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-60"
+                >
+                  {saving ? "Guardando..." : "Guardar cambios"}
                 </button>
                 {saved && <span className="text-sm text-success">Guardado</span>}
               </div>

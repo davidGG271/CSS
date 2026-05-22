@@ -197,6 +197,12 @@ export const cart = {
     state = [];
     persistLocal();
   },
+  clearLocal() {
+    state = [];
+    activeCartId = null;
+    loadedForCliente = null;
+    persistLocal();
+  },
   get activeCartId() {
     return activeCartId;
   },
