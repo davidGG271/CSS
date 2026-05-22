@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "https://cyc-admin-dashboard.vercel.app/admin"
+    },
+    {
+      "source": "/admin/:match*",
+      "destination": "https://cyc-admin-dashboard.vercel.app/admin/:match*"
+    }
+  ]
+}
