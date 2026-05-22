@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -18,11 +19,20 @@ import { NotificacionModule } from './notificacion/notificacion.module';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
+      url: process.env.DATABASE_URL,
+      ssl: true,
+      extra: {
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
+      /*
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'david',
+      password: 'db_password_here',
       database: 'tiendaCyC',
+      */
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
       logging: false,

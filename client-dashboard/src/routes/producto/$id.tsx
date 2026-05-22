@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Star, Truck, ShieldCheck, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 /*import { products, formatPrice } from "@/lib/products"; NUEVO*/
@@ -18,6 +18,8 @@ export const Route = createFileRoute("/producto/$id")({
 
 function ProductPage() {
   const { id } = Route.useParams();
+  const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState(false);
 
   /*NUEVO*/
   const { data: p, isLoading, error } = useQuery({
@@ -27,9 +29,6 @@ function ProductPage() {
 
   if (isLoading) return <p>Cargando producto...</p>;
   if (error || !p) return <p>No se pudo cargar el producto.</p>;
-
-  const [qty, setQty] = useState(1);
-  const [added, setAdded] = useState(false);
 
   const handleAdd = () => {
     cart.add(p, qty);

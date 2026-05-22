@@ -1,4 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useState } from "react";
 import { ShoppingCart, User as UserIcon, Search, Cpu } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
 import { useAuth } from "@/lib/auth-store";
@@ -6,15 +7,25 @@ import { useAuth } from "@/lib/auth-store";
 const nav = [
   { to: "/", label: "Inicio" },
   { to: "/catalogo", label: "Catálogo" },
-  { to: "/armar-pc", label: "Armá tu PC" },
-  { to: "/catalogo/componentes", label: "Componentes" },
+  { to: "/armar-pc", label: "Arma tu PC" },
+  { to: "/catalogo/pc-componente", label: "Componentes" },
   { to: "/catalogo/perifericos", label: "Periféricos" },
 ];
 
 export function Header() {
   const { count } = useCart();
   const user = useAuth();
+  const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const [query, setQuery] = useState("");
+
+  const submitSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    navigate({
+      to: "/catalogo",
+      search: query.trim() ? { q: query.trim() } : {},
+    });
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -47,13 +58,18 @@ export function Header() {
           })}
         </nav>
 
-        <div className="ml-auto hidden flex-1 max-w-xs items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 lg:flex">
+        <form
+          onSubmit={submitSearch}
+          className="ml-auto hidden flex-1 max-w-xs items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 transition-smooth focus-within:border-primary/60 lg:flex"
+        >
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
             placeholder="Buscar productos..."
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
-        </div>
+        </form>
 
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <Link
@@ -100,8 +116,8 @@ export function Footer() {
           <h4 className="mb-3 text-sm font-semibold">Tienda</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li><Link to="/catalogo">Catálogo completo</Link></li>
-            <li><Link to="/catalogo/computadoras">PCs Armadas</Link></li>
-            <li><Link to="/catalogo/notebooks">Notebooks</Link></li>
+            <li><Link to="/catalogo/pc-desktop">PCs Armadas</Link></li>
+            <li><Link to="/catalogo/pc-componente">Componentes</Link></li>
           </ul>
         </div>
         <div>
