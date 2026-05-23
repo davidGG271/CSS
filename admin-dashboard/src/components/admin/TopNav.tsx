@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/lib/theme";
 import { useAdmin } from "@/lib/store";
+import { useAuth } from "@/lib/auth-store";
 import { toast } from "sonner";
 import { useState } from "react";
 import { logoutUnificado } from "@/lib/auth-unified";
@@ -25,6 +26,7 @@ export function TopNav() {
   const [q, setQ] = useState("");
   const products = useAdmin((s) => s.products);
   const orders = useAdmin((s) => s.orders);
+  const user = useAuth();
 
   const lowStock = products.filter((p) => p.stock > 0 && p.stock <= 3).length;
   const outOfStock = products.filter((p) => p.stock === 0).length;
@@ -127,12 +129,14 @@ export function TopNav() {
             <button className="flex items-center gap-3 rounded-full p-1 pr-3 transition-all hover:bg-muted/50">
               <div className="relative">
                 <Avatar className="h-9 w-9 border-2 border-[var(--neon-purple)] shadow-[0_0_15px_-3px_var(--neon-purple)]">
-                  <AvatarFallback className="gradient-neon font-bold text-white">A</AvatarFallback>
+                  <AvatarFallback className="gradient-neon font-bold text-white">
+                    {user?.name?.charAt(0).toUpperCase() || "A"}
+                  </AvatarFallback>
                 </Avatar>
                 <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-[var(--neon-green)]" />
               </div>
               <div className="hidden text-left leading-tight md:block">
-                <p className="text-sm font-medium">Admin Master</p>
+                <p className="text-sm font-medium">{user?.name || "Admin"}</p>
                 <Badge variant="secondary" className="h-4 px-1.5 text-[10px] text-[var(--neon-green)]">
                   Online
                 </Badge>

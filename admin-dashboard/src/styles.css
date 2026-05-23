@@ -136,3 +136,114 @@
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.4,0,0.2,1) both; }
+
+/* Admin Panel Scoped Themes */
+.admin-layout {
+
+  --radius: 0.75rem;
+
+  /* Light mode ÔÇö clean tech with neon accents that still pop */
+  --background: oklch(0.985 0.005 260);
+  --foreground: oklch(0.18 0.04 270);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.04 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.04 270);
+
+  --primary: oklch(0.55 0.24 285);
+  --primary-foreground: oklch(0.99 0.005 260);
+  --secondary: oklch(0.95 0.02 270);
+  --secondary-foreground: oklch(0.22 0.05 270);
+  --muted: oklch(0.95 0.015 270);
+  --muted-foreground: oklch(0.45 0.04 270);
+  --accent: oklch(0.93 0.05 290);
+  --accent-foreground: oklch(0.22 0.08 285);
+  --destructive: oklch(0.6 0.24 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.9 0.02 270);
+  --input: oklch(0.93 0.015 270);
+  --ring: oklch(0.6 0.22 285);
+
+  --neon-blue: oklch(0.65 0.22 250);
+  --neon-purple: oklch(0.6 0.26 295);
+  --neon-violet: oklch(0.55 0.27 285);
+  --neon-cyan: oklch(0.78 0.16 200);
+  --neon-pink: oklch(0.7 0.25 350);
+  --neon-green: oklch(0.78 0.2 145);
+
+  --chart-1: oklch(0.6 0.24 285);
+  --chart-2: oklch(0.7 0.18 210);
+  --chart-3: oklch(0.75 0.18 200);
+  --chart-4: oklch(0.7 0.22 350);
+  --chart-5: oklch(0.78 0.2 145);
+
+  --sidebar: oklch(0.97 0.01 270);
+  --sidebar-foreground: oklch(0.2 0.04 270);
+  --sidebar-primary: oklch(0.55 0.24 285);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.93 0.04 285);
+  --sidebar-accent-foreground: oklch(0.22 0.06 285);
+  --sidebar-border: oklch(0.88 0.02 270);
+  --sidebar-ring: oklch(0.6 0.22 285);
+
+  --gradient-primary: linear-gradient(135deg, oklch(0.6 0.26 295), oklch(0.65 0.22 250));
+  --gradient-neon: linear-gradient(135deg, oklch(0.6 0.26 295) 0%, oklch(0.65 0.22 250) 50%, oklch(0.78 0.16 200) 100%);
+  --gradient-card: linear-gradient(160deg, oklch(1 0 0 / 0.9), oklch(0.97 0.02 285 / 0.6));
+  --shadow-glow: 0 0 24px -6px oklch(0.6 0.26 295 / 0.5);
+  --shadow-neon: 0 8px 30px -10px oklch(0.6 0.26 295 / 0.4), 0 0 0 1px oklch(0.6 0.26 295 / 0.1);
+
+}
+
+.dark .admin-layout {
+
+  /* Dark mode ÔÇö deep blue-black with vivid neon */
+  --background: oklch(0.13 0.03 270);
+  --foreground: oklch(0.96 0.01 260);
+  --card: oklch(0.18 0.04 270);
+  --card-foreground: oklch(0.96 0.01 260);
+  --popover: oklch(0.17 0.04 270);
+  --popover-foreground: oklch(0.96 0.01 260);
+
+  --primary: oklch(0.7 0.24 290);
+  --primary-foreground: oklch(0.13 0.03 270);
+  --secondary: oklch(0.22 0.05 270);
+  --secondary-foreground: oklch(0.96 0.01 260);
+  --muted: oklch(0.22 0.04 270);
+  --muted-foreground: oklch(0.72 0.03 265);
+  --accent: oklch(0.28 0.1 290);
+  --accent-foreground: oklch(0.96 0.01 260);
+  --destructive: oklch(0.65 0.24 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.3 0.04 275 / 0.6);
+  --input: oklch(0.25 0.04 275 / 0.7);
+  --ring: oklch(0.7 0.24 290);
+
+  --neon-blue: oklch(0.72 0.22 245);
+  --neon-purple: oklch(0.72 0.26 295);
+  --neon-violet: oklch(0.68 0.27 285);
+  --neon-cyan: oklch(0.85 0.17 200);
+  --neon-pink: oklch(0.78 0.24 350);
+  --neon-green: oklch(0.85 0.2 150);
+
+  --chart-1: oklch(0.72 0.26 295);
+  --chart-2: oklch(0.72 0.22 245);
+  --chart-3: oklch(0.85 0.17 200);
+  --chart-4: oklch(0.78 0.24 350);
+  --chart-5: oklch(0.85 0.2 150);
+
+  --sidebar: oklch(0.16 0.04 272);
+  --sidebar-foreground: oklch(0.92 0.01 260);
+  --sidebar-primary: oklch(0.72 0.26 295);
+  --sidebar-primary-foreground: oklch(0.13 0.03 270);
+  --sidebar-accent: oklch(0.24 0.06 285);
+  --sidebar-accent-foreground: oklch(0.96 0.01 260);
+  --sidebar-border: oklch(0.28 0.04 275 / 0.6);
+  --sidebar-ring: oklch(0.72 0.26 295);
+
+  --gradient-primary: linear-gradient(135deg, oklch(0.72 0.26 295), oklch(0.72 0.22 245));
+  --gradient-neon: linear-gradient(135deg, oklch(0.72 0.26 295) 0%, oklch(0.72 0.22 245) 50%, oklch(0.85 0.17 200) 100%);
+  --gradient-card: linear-gradient(160deg, oklch(0.2 0.05 275 / 0.85), oklch(0.16 0.04 272 / 0.6));
+  --shadow-glow: 0 0 32px -4px oklch(0.72 0.26 295 / 0.55);
+  --shadow-neon: 0 8px 40px -10px oklch(0.72 0.26 295 / 0.5), 0 0 0 1px oklch(0.72 0.26 295 / 0.18);
+
+}
