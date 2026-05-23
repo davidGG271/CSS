@@ -1,4 +1,4 @@
-@import "tailwindcss" source(none);
+ï»¿@import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
 
@@ -139,10 +139,12 @@
 
 /* Admin Panel Scoped Themes */
 .admin-layout {
+  background-color: var(--background);
+  color: var(--foreground);
 
   --radius: 0.75rem;
 
-  /* Light mode ÔÇö clean tech with neon accents that still pop */
+  /* Light mode Ã”Ã‡Ã¶ clean tech with neon accents that still pop */
   --background: oklch(0.985 0.005 260);
   --foreground: oklch(0.18 0.04 270);
   --card: oklch(1 0 0);
@@ -195,8 +197,10 @@
 }
 
 .dark .admin-layout {
+  background-color: var(--background);
+  color: var(--foreground);
 
-  /* Dark mode ÔÇö deep blue-black with vivid neon */
+  /* Dark mode Ã”Ã‡Ã¶ deep blue-black with vivid neon */
   --background: oklch(0.13 0.03 270);
   --foreground: oklch(0.96 0.01 260);
   --card: oklch(0.18 0.04 270);
