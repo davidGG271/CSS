@@ -3,7 +3,7 @@ import { type Product, type ProductCategory, type Order, type OrderItem, type Or
 
 // Configuración global de Axios
 export const api = axios.create({
-  baseURL: "http://localhost:3000", // La URL de tu backend en NestJS
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000", // Usa VITE_API_URL si existe, si no usa localhost
   headers: {
     "Content-Type": "application/json",
   },

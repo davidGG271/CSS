@@ -45,7 +45,8 @@ function Login() {
         if (adminData && adminData.correo) {
           // Es administrador, redirigir al dashboard de admin
           // Forzamos una recarga completa para salir del router del cliente y entrar al de Vite
-          window.location.href = "https://cyccomputer-admin.davidgn2744.workers.dev";
+          const adminUrl = import.meta.env.VITE_ADMIN_URL || "http://localhost:8001";
+          window.location.href = adminUrl;
           return;
         }
       } catch (adminErr) {
