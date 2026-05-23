@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Cpu, Truck, ShieldCheck, Headphones } from "lucide-react";
 import heroImg from "@/assets/hero-pc.jpg";
-import { categories } from "@/lib/products";
+import { catalogCategories } from "@/lib/products";
 import { ProductCard } from "@/components/store/product-card";
 import { getProductos } from "@/lib/products-api";
 
@@ -48,7 +48,8 @@ function Home() {
                 Explorar catálogo <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                to="/catalogo/computadoras"
+                to="/catalogo/$category"
+                params={{ category: "pc-desktop" }}
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-6 py-3 text-sm font-semibold transition-smooth hover:border-primary/60"
               >
                 PCs armadas
@@ -109,7 +110,7 @@ function Home() {
           </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((c) => (
+          {catalogCategories.map((c) => (
             <Link
               key={c.slug}
               to="/catalogo/$category"
@@ -150,3 +151,4 @@ function Home() {
     </div>
   );
 }
+
