@@ -150,8 +150,7 @@ export function TopNav() {
               onClick={() => {
                 logoutUnificado();
                 toast.success("Sesión cerrada", { duration: 2000 });
-                const clientUrl = import.meta.env.VITE_CLIENT_URL || "http://localhost:8000";
-                window.location.href = clientUrl;
+                navigate({ to: "/" });
               }}
             >
               Cerrar sesión
