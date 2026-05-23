@@ -5,24 +5,10 @@ import { TopNav } from "@/components/admin/TopNav";
 import { getRolActual } from "@/lib/auth-unified";
 
 export const Route = createFileRoute("/admin")({
-  beforeLoad: ({ location }) => {
-    const search = location.search as Record<string, string>;
-    if (search.sso && typeof window !== "undefined") {
-      try {
-        const data = JSON.parse(atob(search.sso));
-        localStorage.setItem("cyc-rol", "ADMIN");
-        localStorage.setItem("cyc-user", JSON.stringify(data));
-        throw redirect({ to: "/admin", replace: true });
-      } catch (e) {}
-    }
-
+  beforeLoad: () => {
     const rol = getRolActual();
     if (rol !== "ADMIN") {
-      if (typeof window !== "undefined") {
-        const clientUrl = import.meta.env.VITE_CLIENT_URL || "http://localhost:8000";
-        window.location.href = `${clientUrl}/login`;
-      }
-      throw redirect({ to: "/" }); // Fallback local seguro
+      throw redirect({ to: "/login" });
     }
   },
   component: AdminLayout,

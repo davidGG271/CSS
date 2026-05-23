@@ -46,13 +46,7 @@ function Login() {
           // Es administrador, redirigir al dashboard de admin
           // Forzamos una recarga completa para salir del router del cliente y entrar al de Vite
           const adminUrl = import.meta.env.VITE_ADMIN_URL || "http://localhost:8001";
-          const ssoData = btoa(JSON.stringify({ 
-            id: adminData.id, 
-            name: adminData.nombre || adminData.correo.split('@')[0], 
-            email: adminData.correo, 
-            rol: "ADMIN" 
-          }));
-          window.location.href = `${adminUrl}?sso=${ssoData}`;
+          window.location.href = adminUrl;
           return;
         }
       } catch (adminErr) {
