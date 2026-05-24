@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { Header, Footer } from "@/components/site-chrome";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -115,15 +116,18 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const isAdmin = router.state.location.pathname.startsWith("/admin");
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
-        <Header />
+        {!isAdmin && <Header />}
         <main className="flex-1">
           <Outlet />
         </main>
-        <Footer />
+        {!isAdmin && <Footer />}
+        <Toaster position="top-right" richColors />
       </div>
     </QueryClientProvider>
   );

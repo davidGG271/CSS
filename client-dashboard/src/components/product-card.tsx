@@ -14,9 +14,17 @@ export function ProductCard({ product }: { product: Product }) {
       <Link to="/producto/$id" params={{ id: product.id }} className="flex-1">
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-surface to-background">
           <div className="absolute inset-0 grid-noise opacity-30" />
-          <div className="absolute inset-0 grid place-items-center text-7xl transition-transform duration-500 group-hover:scale-110">
-            {product.emoji}
-          </div>
+          {product.image ? (
+            <img
+              src={product.image}
+              alt={product.name}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center text-7xl transition-transform duration-500 group-hover:scale-110">
+              {product.emoji}
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         </div>
         <div className="p-4">

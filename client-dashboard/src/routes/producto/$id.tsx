@@ -45,7 +45,15 @@ function ProductPage() {
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
         <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-gradient-card shadow-elegant">
           <div className="absolute inset-0 grid-noise opacity-30" />
-          <div className="absolute inset-0 grid place-items-center text-[14rem]">{p.emoji}</div>
+          {p.image ? (
+            <img
+              src={p.image}
+              alt={p.name}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+            />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center text-[14rem]">{p.emoji}</div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
         </div>
 

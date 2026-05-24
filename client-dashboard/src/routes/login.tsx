@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, Navigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { auth, useAuth } from "@/lib/auth-store";
-import { loginCliente } from "@/lib/clients-api";
+import { useAuth } from "@/lib/auth-store";
+import { loginUnificado } from "@/lib/auth-unified";
 
 export const Route = createFileRoute("/login")({
   component: Login,
@@ -17,14 +17,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   if (user) {
-    return (
-      <div className="container mx-auto max-w-md px-4 py-20 text-center">
-        <p>Ya iniciaste sesion como <b>{user.name}</b>.</p>
-        <Link to="/cuenta" className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-          Ir a mi cuenta
-        </Link>
-      </div>
-    );
+    return <Navigate to={user.rol === "ADMIN" ? "/admin" : "/cuenta"} />;
   }
 
   const submit = async (event: React.FormEvent) => {
@@ -34,20 +27,14 @@ function Login() {
     setLoading(true);
     setErr("");
     try {
-      const cliente = await loginCliente({
-        correo: email,
-        contrasena: pwd,
-      });
-
-      auth.register({
-        idCliente: cliente.idCliente,
-        name: cliente.nombre,
-        email: cliente.correo,
-        dni: cliente.dni,
-      });
-      navigate({ to: "/cuenta" });
-    } catch {
-      setErr("Correo o contrasena incorrectos.");
+      const result = await loginUnificado(email, pwd);
+      if (result.rol === "ADMIN") {
+        navigate({ to: "/admin" });
+      } else {
+        navigate({ to: "/cuenta" });
+      }
+    } catch (error: any) {
+      setErr(error.message || "Correo o contrasena incorrectos.");
     } finally {
       setLoading(false);
     }

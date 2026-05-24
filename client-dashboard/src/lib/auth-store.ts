@@ -8,6 +8,7 @@ export interface User {
   phone?: string;
   address?: string;
   city?: string;
+  rol?: "ADMIN" | "CLIENTE";
 }
 
 const STORAGE_KEY = "cyc-user";
@@ -30,8 +31,8 @@ function persist() {
 }
 
 export const auth = {
-  login(email: string, name = email.split("@")[0]) {
-    state = { name, email };
+  login(email: string, name = email.split("@")[0], rol?: "ADMIN" | "CLIENTE") {
+    state = { name, email, rol };
     persist();
   },
   register(user: User) {

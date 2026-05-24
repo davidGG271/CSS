@@ -33,6 +33,7 @@ export interface Product {
   description: string;
   specs: { label: string; value: string }[];
   emoji: string;
+  image?: string;
 }
 
 export const categories: { slug: Category; name: string; emoji: string; description: string }[] = [
