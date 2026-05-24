@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -29,7 +30,7 @@ import { NotificacionModule } from './notificacion/notificacion.module';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'henry',
+      password: '301204',
       database: 'tiendaCyC',
       */
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
